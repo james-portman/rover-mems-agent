@@ -11,13 +11,65 @@ import (
 var (
   ecu1xGotKlineEcho = false
   ecu1xLastKlineByte = byte(0x00)
+
+	ecu1xRequestClearFaults = byte(0xCC)
+	ecu1xStartTestRpmGauge = byte(0x6B)
+	ecu1xStartTestLambdaHeater = byte(0x19)
+	ecu1xStopTestLambdaHeater = byte(0x09)
+	ecu1xStartTestACClutch = byte(0x13)
+	ecu1xStopTestACClutch = byte(0x03)
+	ecu1xStartTestFuelPump = byte(0x11)
+	ecu1xStopTestFuelPump = byte(0x01)
+	ecu1xStartTestFan1 = byte(0x1D)
+	ecu1xStopTestFan1 = byte(0x0D)
+	ecu1xStartTestPurgeValve = byte(0x18)
+	ecu1xStopTestPurgeValve = byte(0x08)
+
+	ecu1xUserCommands = map[string] byte{
+		"clearfaults": ecu1xRequestClearFaults,
+		"startTestRpmGauge": ecu1xStartTestRpmGauge,
+		"startTestLambdaHeater": ecu1xStartTestLambdaHeater,
+		"stopTestLambdaHeater": ecu1xStopTestLambdaHeater,
+		"startTestACClutch": ecu1xStartTestACClutch,
+		"stopTestACClutch": ecu1xStopTestACClutch,
+		"startTestFuelPump": ecu1xStartTestFuelPump,
+		"stopTestFuelPump": ecu1xStopTestFuelPump,
+		"startTestFan1": ecu1xStartTestFan1,
+		"stopTestFan1": ecu1xStopTestFan1,
+		"startTestPurgeValve": ecu1xStartTestPurgeValve,
+		"stopTestPurgeValve": ecu1xStopTestPurgeValve,
+	}
 )
 
-func ecu1xSend(sp sers.SerialPort, data int) {
-  databyte := byte(data)
-  sp.Write([]byte{databyte})
+func ecu1xNextCommand(previousResponse byte) byte {
+	if globalUserCommand != "" {
+		command, ok := ecu1xUserCommands[globalUserCommand];
+		if ok {
+			globalUserCommand = ""
+			fmt.Println("> "+globalUserCommand)
+			return command
+		} else {
+			fmt.Println("Asked to perform a user command but don't understand it")
+		}
+	}
+
+	switch previousResponse {
+		case ecu1xRequestClearFaults: return 0x80; break
+		case 0xCA: return 0x75; break
+		case 0x75: return 0xF4; break
+		case 0xF4: return 0xD0; break
+		case 0xD0: return 0x80; break
+		case 0x80: return 0x7D; break
+		case 0x7D: return 0x80; break
+	}
+
+	return 0x80 // if we aren't sure
+}
+
+func ecu1xSend(sp sers.SerialPort, data byte) {
+  sp.Write([]byte{data})
   ecu1xGotKlineEcho = false
-  ecu1xLastKlineByte = databyte
+  ecu1xLastKlineByte = data
 }
 
 func ecu1xLoop(sp sers.SerialPort, kline bool) ([]byte, error) {
@@ -28,6 +80,8 @@ func ecu1xLoop(sp sers.SerialPort, kline bool) ([]byte, error) {
 
 	readLoops := 0
 	readLoopsLimit := 200
+
+	READLOOP:
 	for readLoops < readLoopsLimit {
 		readLoops++
 		if readLoops > 1 {
@@ -48,7 +102,7 @@ func ecu1xLoop(sp sers.SerialPort, kline bool) ([]byte, error) {
     if kline && !ecu1xGotKlineEcho {
       if buffer[0] == ecu1xLastKlineByte {
         ecu1xGotKlineEcho = true
-        fmt.Println("got our kline echo")
+        // fmt.Println("got our kline echo")
         buffer = buffer[1:]
         continue
       }
@@ -56,63 +110,101 @@ func ecu1xLoop(sp sers.SerialPort, kline bool) ([]byte, error) {
 
     if len(buffer) == 0 { continue }
 
-    if buffer[0] == 0xCA {
-      fmt.Println("Got CA")
-      buffer = nil
-      ecu1xSend(sp, 0x75)
-      continue
-    }
-    if buffer[0] == 0x75 {
-      fmt.Println("Got 75")
-      buffer = nil
-      ecu1xSend(sp, 0xF4)
-      continue
-    }
-    if buffer[0] == 0xF4 {
-      if len(buffer) >= 2 && buffer[1] == 0x00 {
-        fmt.Println("Got F4 00")
-        buffer = nil
-        ecu1xSend(sp, 0xD0)
-        continue
-      }
-    }
-    if buffer[0] == 0xD0 {
-      if len(buffer) >= 5 {
-        globalConnected = true
-        fmt.Println("Got D0 and ECU ID")
-        fmt.Printf("ECU ID:\n%s", hex.Dump(buffer[1:5]))
-        buffer = nil
-        ecu1xSend(sp, 0x80)
-        continue
-      }
-    }
+		// check through the user commands (if we got 00 back as well)
+		if len(buffer) >= 2 && buffer[1] == 0x00 {
+			for key := range ecu1xUserCommands {
+				if buffer[0] == ecu1xUserCommands[key] {
 
-    if buffer[0] == 0x80 {
-      if len(buffer) >= 2 {
-        fullLength := int(buffer[1]) + 1
-        if len(buffer) >= fullLength {
-          fmt.Println("Got data 80")
-          ecu1xParseData80(buffer)
-          buffer = nil
-          ecu1xSend(sp, 0x7D)
-        }
-      }
-      // not got the full packet yet
-      continue
-    }
-    if buffer[0] == 0x7D {
-      if len(buffer) >= 2 {
-        fullLength := int(buffer[1]) + 1
-        if len(buffer) >= fullLength {
-          fmt.Println("Got data 7D")
-          ecu1xParseData7D(buffer)
-          buffer = nil
-          ecu1xSend(sp, 0x80)
-        }
-      }
-      // not got the full packet yet
-      continue
-    }
+					fmt.Println("< "+key)
+					globalAlert = "ECU accepted "+key
+					ecu1xSend(sp, ecu1xNextCommand(buffer[0]))
+					buffer = nil
+					continue READLOOP // need to jump out twice
+				}
+			}
+		}
+
+
+		switch buffer[0] {
+			// case ecu1xRequestClearFaults:
+			// 	if len(buffer) >= 2 && buffer[1] == 0x00 {
+			// 		fmt.Println("< FAULTS CLEARED")
+			// 		globalAlert = "ECU reports faults cleared"
+			// 		ecu1xSend(sp, ecu1xNextCommand(buffer[0]))
+			// 		buffer = nil
+			// 		continue
+			// 	}
+			// 	break
+
+			case 0xCA:
+	      fmt.Println("Got CA")
+				ecu1xSend(sp, ecu1xNextCommand(buffer[0]))
+				buffer = nil
+	      continue
+				break
+
+			case 0x75:
+	      fmt.Println("Got 75")
+	      ecu1xSend(sp, ecu1xNextCommand(buffer[0]))
+				buffer = nil
+	      continue
+				break
+
+	    case 0xF4:
+	      if len(buffer) >= 2 && buffer[1] == 0x00 {
+	        fmt.Println("Got F4 00")
+	        ecu1xSend(sp, ecu1xNextCommand(buffer[0]))
+					buffer = nil
+	        continue
+	      }
+				break
+
+
+	    case 0xD0:
+	      if len(buffer) >= 5 {
+	        globalConnected = true
+	        fmt.Println("Got D0 and ECU ID")
+	        fmt.Printf("ECU ID:\n%s", hex.Dump(buffer[1:5]))
+	        ecu1xSend(sp, ecu1xNextCommand(buffer[0]))
+					buffer = nil
+	        continue
+	      }
+				break
+
+
+	    case 0x80:
+	      if len(buffer) >= 2 {
+	        fullLength := int(buffer[1]) + 1
+	        if len(buffer) >= fullLength {
+	          fmt.Println("Got data 80")
+	          ecu1xParseData80(buffer)
+	          ecu1xSend(sp, ecu1xNextCommand(buffer[0]))
+						buffer = nil
+	        }
+	      }
+	      // not got the full packet yet
+	      continue
+				break
+
+	    case 0x7D:
+	      if len(buffer) >= 2 {
+	        fullLength := int(buffer[1]) + 1
+	        if len(buffer) >= fullLength {
+	          fmt.Println("Got data 7D")
+	          ecu1xParseData7D(buffer)
+	          ecu1xSend(sp, ecu1xNextCommand(buffer[0]))
+						buffer = nil
+	        }
+	      }
+	      // not got the full packet yet
+	      continue
+				break
+
+
+		} // end switch
+
+		// unknown command?
+		// could be one of the normal commands waiting for their 2nd byte so don't do anything here
 
   }
   if readLoops >= readLoopsLimit {
