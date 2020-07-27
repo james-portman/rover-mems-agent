@@ -49,8 +49,6 @@ func main() {
 
 func connectLoop() error {
 
-	globalEcuType = "1.9"
-
 	if globalEcuType == "" {
 		return errors.New("No ECU type selected yet, go back to the web interface to choose one")
 	}
@@ -85,6 +83,10 @@ func connectLoop() error {
 			break
 		case "1.9":
 			_, err = readFirstBytesFromPortEcu19(portname)
+			break
+		case "3":
+			_, err = readFirstBytesFromPortEcu3(portname)
+			break
 		default:
 			return errors.New("Unknown ECU type set")
 	}
