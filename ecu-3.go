@@ -28,133 +28,85 @@ var (
 	ecu3PingCommand = []byte {0x3E}
 	ecu3PongResponse = []byte {0x7E}
 
-	// ecu3ClearFaultsCommand = []byte {0x31, 0xCB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
-	//
-	// ecu3RequestFaultsCommand = []byte {0x21, 0x19}
-	//
-	// ecu3RequestData00 = []byte {0x21, 0x00}
-	// ecu3RequestData01 = []byte {0x21, 0x01}
-	// ecu3RequestData02 = []byte {0x21, 0x02}
-	// ecu3RequestData03 = []byte {0x21, 0x03}
-	// ecu3RequestData05 = []byte {0x21, 0x05}
-	// ecu3RequestData06 = []byte {0x21, 0x06}
-	// ecu3RequestData07 = []byte {0x21, 0x07}
-	// ecu3RequestData08 = []byte {0x21, 0x08}
-	// ecu3RequestData09 = []byte {0x21, 0x09}
-	// ecu3RequestData0A = []byte {0x21, 0x0A}
-	// ecu3RequestData0B = []byte {0x21, 0x0B}
-	// ecu3RequestData0C = []byte {0x21, 0x0C}
-	// ecu3RequestData0D = []byte {0x21, 0x0D}
-	// ecu3RequestData0F = []byte {0x21, 0x0F}
-	// ecu3RequestData10 = []byte {0x21, 0x10}
-	// ecu3RequestData11 = []byte {0x21, 0x11}
-	// ecu3RequestData12 = []byte {0x21, 0x12}
-	// ecu3RequestData13 = []byte {0x21, 0x13}
-	// ecu3RequestData21 = []byte {0x21, 0x21}
-	// ecu3RequestData25 = []byte {0x21, 0x25}
-	// ecu3RequestData3A = []byte {0x21, 0x3A}
-	//
-	// ecu3WokeResponse = []byte {0xc1, 0xd5, 0x8f}
+	ecu3ClearFaultsCommand = []byte {0x14, 0x00, 0x00}
+	ecu3FaultsClearedResponse = []byte {0x54, 0x00, 0x00}
+
+	ecu3RequestFaultsCommand = []byte {0x18, 0x0, 0x0, 0x0}
+	ecu3ResponseFaults = []byte {0x58}
+
+	ecu3RequestData00 = []byte {0x21, 0x00}
+	ecu3RequestData06 = []byte {0x21, 0x06}
+	ecu3RequestData0A = []byte {0x21, 0x0A}
+	ecu3RequestData0B = []byte {0x21, 0x0B}
+	ecu3RequestData21 = []byte {0x21, 0x21}
+
+	ecu3ResponseData00 = []byte {0x61, 0x00}
+	ecu3ResponseData06 = []byte {0x61, 0x06}
+	ecu3ResponseData0A = []byte {0x61, 0x0A}
+	ecu3ResponseData0B = []byte {0x61, 0x0B}
+	ecu3ResponseData21 = []byte {0x61, 0x21}
+
+	ecu3UserCommands = map[string] []byte{
+		"clearfaults": ecu3ClearFaultsCommand,
+	}
 
 
-	// ecu3FaultsClearedResponse = []byte {0x71, 0xCB}
-	//
-	// ecu3FaultsResponse = []byte {0x61, 0x19}
-	//
-	// ecu3ResponseData00 = []byte {0x61, 0x00}
-	// ecu3ResponseData01 = []byte {0x61, 0x01}
-	// ecu3ResponseData02 = []byte {0x61, 0x02}
-	// ecu3ResponseData03 = []byte {0x61, 0x03}
-	// ecu3ResponseData05 = []byte {0x61, 0x05}
-	// ecu3ResponseData06 = []byte {0x61, 0x06}
-	// ecu3ResponseData07 = []byte {0x61, 0x07}
-	// ecu3ResponseData08 = []byte {0x61, 0x08}
-	// ecu3ResponseData09 = []byte {0x61, 0x09}
-	// ecu3ResponseData0A = []byte {0x61, 0x0A}
-	// ecu3ResponseData0B = []byte {0x61, 0x0B}
-	// ecu3ResponseData0C = []byte {0x61, 0x0C}
-	// ecu3ResponseData0D = []byte {0x61, 0x0D}
-	// ecu3ResponseData0F = []byte {0x61, 0x0F}
-	// ecu3ResponseData10 = []byte {0x61, 0x10}
-	// ecu3ResponseData11 = []byte {0x61, 0x11}
-	// ecu3ResponseData12 = []byte {0x61, 0x12}
-	// ecu3ResponseData13 = []byte {0x61, 0x13}
-	// ecu3ResponseData21 = []byte {0x61, 0x21}
-	// ecu3ResponseData25 = []byte {0x61, 0x25}
-	// ecu3ResponseData3A = []byte {0x61, 0x3A}
+  ecu3FaultTypes = map[int]string {
+    0x20: "historical",
+    0x74: "present, test not complete",
+    0x30: "historical, test not complete",
+    0x58: "present, test not complete",
+    0x61: "present",
+    0x62: "present",
+    0x64: "present",
+    0x71: "present, test not complete",
+  }
+  ecu3Faults = map[int]string {
+    0x1232: "fuel pump relay, open circuit",
+    0x0650: "MIL control circuit malfunction",
+    0x0481: "A/C condensor fan",
+    0x1508: "IACV driver open circuit",
+    0x1186: "front lambda heater",
+    0x1185: "front lambda heater",
+    0x1192: "rear lambda heater",
+    0x0445: "purge valve drive",
+    0x0480: "cooling fan",
+    0x1610: "main relay - open circuit",
+    0x0113: "IAT shorted",
+    0x0118: "coolant temp sensor shorted",
+    0x0122: "throttle pot shorted",
+    0x0562: "system voltage malfunction",
+    0x0197: "oil temp sensor shorted",
+    0x0462: "fuel tank level sensor shorted to ground",
+    0x0340: "cam position sensor",
+    0x0106: "manifold pressure - incorrect reading",
+    0x1316: "misfire causing excess emissions",
+    0x0170: "fuel system",
+    0x0655: "warning lamp - engine bay temperature - open circuit",
+  }
 
-	// ecu3UserCommands = map[string] []byte{
-	// 	"clearfaults": ecu3ClearFaultsCommand,
-	// }
-	//
-	// ecu3Faults = map[int]string{
-	// 	0x150A: "Driver airbag shorted to battery positive",
-	// 	0x150B: "Driver airbag shorted to battery negative",
-	// 	0x150C: "Driver airbag high resistance",
-	// 	0x150D: "Driver airbag low resistance",
-	// 	0x150E: "Driver airbag squib circuit",
-	// 	0x1512: "Passenger airbag squib short to battery positive",
-	// 	0x1513: "Passenger airbag 1 short to battery negative",
-	// 	0x1514: "Passenger airbag 1 high resistance",
-	// 	0x1515: "Passenger airbag 1 low resistance",
-	// 	0x1516: "Passenger airbag 1 squib circuit",
-	// 	0x151A: "Pretensioner short to battery positive",
-	// 	0x151B: "Pretensioner short to battery negative",
-	// 	0x151C: "Passenger airbag 2 high resistance",
-	// 	0x151D: "Passenger airbag 2 low resistance",
-	// 	0x151E: "Passenger airbag 2 squib circuit",
-	// 	0x1524: "Right pretensioner high resistance",
-	// 	0x1525: "Right pretensioner low resistance",
-	// 	0x1526: "Right pretensioner squib circuit",
-	// 	0x152C: "Left pretensioner high resistance",
-	// 	0x152D: "Left pretensioner low resistance",
-	// 	0x152E: "Left pretensioner squib circuit",
-	// 	0x160C: "SRS warning lamp short circuit",
-	// 	0x160D: "SRS warning lamp open circuit",
-	// 	0x160E: "SRS warning lamp driver",
-	// 	0x0000: "0x0000 Unknown fault, power cycle and try again",
-	// }
 )
-//
-// func ecu3SendCommand(sp sers.SerialPort, command []byte) {
-//
-// 	finalCommand := []byte {byte(len(command))}
-//
-// 	for i := 0; i < len(command); i++ {
-// 		finalCommand = append(finalCommand, command[i])
-// 	}
-//
-//   checksum := 0
-// 	for i := 0; i < len(finalCommand); i++ {
-//     checksum += int(finalCommand[i])
-//   }
-//   checksum = checksum & 0xFF
-// 	finalCommand = append(finalCommand, byte(checksum))
-// 	// fmt.Printf("sending %d bytes \n%s", len(finalCommand), hex.Dump(finalCommand))
-// 	sp.Write(finalCommand)
-// }
 
-//
+
 func ecu3SendNextCommand(sp sers.SerialPort, previousResponse []byte) {
-// 	if globalUserCommand != "" {
-// 		command, ok := ecu3UserCommands[globalUserCommand];
-// 		if ok {
-// 			globalUserCommand = ""
-// 			ecu3SendCommand(sp, command)
-// 			return
-// 		} else {
-// 			fmt.Println("Asked to perform a user command but don't understand it")
-// 		}
-// 	}
-//
-// 	globalUserCommand = ""
+	if globalUserCommand != "" {
+		command, ok := ecu3UserCommands[globalUserCommand];
+		if ok {
+			globalUserCommand = ""
+			ecu3SendCommand(sp, command)
+			return
+		} else {
+			fmt.Println("Asked to perform a user command but don't understand it")
+		}
+	}
+
 	if slicesEqual(previousResponse, ecu3InitAccepted) {
 		ecu3SendCommand(sp, ecu3StartDiagnostic)
-	// }
-} else if slicesEqual(previousResponse, ecu3StartDiagResponse) {
+
+	} else if slicesEqual(previousResponse, ecu3StartDiagResponse) {
 		ecu3SendCommand(sp, ecu3RequestSeed)
 
-} else if slicesEqual(previousResponse, ecu3SeedResponse) {
+  } else if slicesEqual(previousResponse, ecu3SeedResponse) {
 		command := append(ecu3SendKey, byte(ecu3Key >> 8))
 		command = append(command, byte(ecu3Key & 0xFF))
 		ecu3SendCommand(sp, command)
@@ -162,43 +114,20 @@ func ecu3SendNextCommand(sp sers.SerialPort, previousResponse []byte) {
 	} else if slicesEqual(previousResponse, ecu3KeyAcceptResponse) {
 		ecu3SendCommand(sp, ecu3PingCommand)
 
-//  } else if slicesEqual(previousResponse, ecu3PongResponse) {
-// 		ecu3SendCommand(sp, ecu3RequestFaultsCommand)
-//
-// 	} else if slicesEqual(previousResponse, ecu3FaultsClearedResponse) {
-// 		ecu3SendCommand(sp, ecu3RequestFaultsCommand)
-//
-// 	} else if slicesEqual(previousResponse, ecu3FaultsResponse) { ecu3SendCommand(sp, ecu3RequestData00)
-//
-// 	} else if slicesEqual(previousResponse, ecu3ResponseData00) { ecu3SendCommand(sp, ecu3RequestData01)
-// 	} else if slicesEqual(previousResponse, ecu3ResponseData01) { ecu3SendCommand(sp, ecu3RequestData02)
-// 	} else if slicesEqual(previousResponse, ecu3ResponseData02) { ecu3SendCommand(sp, ecu3RequestData03)
-// 	} else if slicesEqual(previousResponse, ecu3ResponseData03) { ecu3SendCommand(sp, ecu3RequestData05)
-// 	} else if slicesEqual(previousResponse, ecu3ResponseData05) { ecu3SendCommand(sp, ecu3RequestData06)
-// 	} else if slicesEqual(previousResponse, ecu3ResponseData06) { ecu3SendCommand(sp, ecu3RequestData07)
-// 	} else if slicesEqual(previousResponse, ecu3ResponseData07) { ecu3SendCommand(sp, ecu3RequestData08)
-// 	} else if slicesEqual(previousResponse, ecu3ResponseData08) { ecu3SendCommand(sp, ecu3RequestData09)
-// 	} else if slicesEqual(previousResponse, ecu3ResponseData09) { ecu3SendCommand(sp, ecu3RequestData0A)
-// 	} else if slicesEqual(previousResponse, ecu3ResponseData0A) { ecu3SendCommand(sp, ecu3RequestData0B)
-// 	} else if slicesEqual(previousResponse, ecu3ResponseData0B) { ecu3SendCommand(sp, ecu3RequestData0C)
-// 	} else if slicesEqual(previousResponse, ecu3ResponseData0C) { ecu3SendCommand(sp, ecu3RequestData0D)
-// 	} else if slicesEqual(previousResponse, ecu3ResponseData0D) { ecu3SendCommand(sp, ecu3RequestData0F)
-// 	} else if slicesEqual(previousResponse, ecu3ResponseData0F) { ecu3SendCommand(sp, ecu3RequestData10)
-// 	} else if slicesEqual(previousResponse, ecu3ResponseData10) { ecu3SendCommand(sp, ecu3RequestData11)
-// 	} else if slicesEqual(previousResponse, ecu3ResponseData11) { ecu3SendCommand(sp, ecu3RequestData12)
-// 	} else if slicesEqual(previousResponse, ecu3ResponseData12) { ecu3SendCommand(sp, ecu3RequestData13)
-// 	} else if slicesEqual(previousResponse, ecu3ResponseData13) { ecu3SendCommand(sp, ecu3RequestData21)
-// 	} else if slicesEqual(previousResponse, ecu3ResponseData21) { ecu3SendCommand(sp, ecu3RequestData25)
-// 	} else if slicesEqual(previousResponse, ecu3ResponseData25) { ecu3SendCommand(sp, ecu3RequestData3A)
-// 	} else if slicesEqual(previousResponse, ecu3ResponseData3A) { ecu3SendCommand(sp, ecu3PingCommand)
-//
-// 	// } else if slicesEqual(previousResponse, ecu3WokeResponse) || slicesEqual(previousResponse, ecu3FaultsResponse) {
-// 	// 	sp.Write(ecu3PingCommand)
-// 	//
-// 	// } else if slicesEqual(previousResponse, ecu3FaultsClearedResponse) {
-// 	// 	sp.Write(ecu3RequestFaultsCommand)
-// 	// 	globalAlert = "ECU reports faults cleared"
-//
+   } else if slicesEqual(previousResponse, ecu3PongResponse) {
+		ecu3SendCommand(sp, ecu3RequestFaultsCommand)
+
+	} else if slicesEqual(previousResponse, ecu3ResponseFaults) { ecu3SendCommand(sp, ecu3RequestData00)
+	} else if slicesEqual(previousResponse, ecu3ResponseData00) { ecu3SendCommand(sp, ecu3RequestData06)
+	} else if slicesEqual(previousResponse, ecu3ResponseData06) { ecu3SendCommand(sp, ecu3RequestData0A)
+	} else if slicesEqual(previousResponse, ecu3ResponseData0A) { ecu3SendCommand(sp, ecu3RequestData0B)
+	} else if slicesEqual(previousResponse, ecu3ResponseData0B) { ecu3SendCommand(sp, ecu3RequestData21)
+	} else if slicesEqual(previousResponse, ecu3ResponseData21) { ecu3SendCommand(sp, ecu3PingCommand)
+
+	} else if slicesEqual(previousResponse, ecu3FaultsClearedResponse) {
+		sp.Write(ecu3RequestFaultsCommand)
+		globalAlert = "ECU reports faults cleared"
+
 	} else { // fall back to ping
 		ecu3SendCommand(sp, ecu3PingCommand)
 	}
@@ -323,6 +252,8 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 			continue
 
 		} // end of our echos
+
+		// old/possible echos:
 		// if slicesEqual(actualData, ecu3ClearFaultsCommand) {
 		// 	// fmt.Println("Got our clear faults echo")
 		// 	buffer = buffer[(len(ecu3ClearFaultsCommand)+2):]
@@ -417,14 +348,14 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 		// 	continue
 		// }
 		//
-		// if slicesEqual(actualData[0:2], ecu3FaultsResponse) {
-		// 	fmt.Println("< Faults")
-		// 	ecu3ParseFaults(actualData)
-		// 	buffer = nil
-		// 	time.Sleep(50 * time.Millisecond)
-		// 	ecu3SendNextCommand(sp, ecu3FaultsResponse)
-		// 	continue
-		// }
+		if slicesEqual(actualData[0:len(ecu3ResponseFaults)], ecu3ResponseFaults) {
+			fmt.Println("< Faults")
+			ecu3ParseFaults(actualData)
+			buffer = nil
+			time.Sleep(50 * time.Millisecond)
+			ecu3SendNextCommand(sp, ecu3ResponseFaults)
+			continue
+		}
 		//
 		//
 		// if slicesEqual(actualData[0:2], ecu3ResponseData00) {
@@ -682,86 +613,116 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 
 	return nil, err
 }
-//
-// func ecu3ParseFaults(buffer []byte) {
-// 	// fmt.Printf("got %d bytes \n%s", len(buffer), hex.Dump(buffer))
-//
-// 	faults := []string {}
-//
-// 	if len(buffer) >= 5 {
-// 		if (buffer[4] & 0b01000000) > 0 {	faults = append(faults, "Outside air temp (low voltage)") }
-// 	  if (buffer[4] & 0b00100000) > 0 { faults = append(faults, "Power supply (low voltage)") }
-// 	  if (buffer[4] & 0b00010000) > 0 { faults = append(faults, "Engine oil temp (low voltage)") }
-// 	  if (buffer[4] & 0b00000100) > 0 { faults = append(faults, "Coolant temp (low voltage)") }
-// 	  if (buffer[4] & 0b00000001) > 0 { faults = append(faults, "System (low voltage)") }
-// 	}
-//
-//
-// 	if len(buffer) >= 6 {
-// 	  if (buffer[5] & 0b10000000) > 0 { faults = append(faults, "Battery (low voltage)") }
-// 	  if (buffer[5] & 0b00010000) > 0 { faults = append(faults, "Lambda 1 bank 1 (low voltage)") }
-// 	  if (buffer[5] & 0b00000100) > 0 { faults = append(faults, "Throttle pot (low voltage)") }
-// 	  if (buffer[5] & 0b00000010) > 0 { faults = append(faults, "Air intake (low voltage)") }
-// 	  if (buffer[5] & 0b00000001) > 0 { faults = append(faults, "MAP sensor (low voltage)") }
-// 	}
-//
-// 	if len(buffer) >= 9 {
-// 	  if (buffer[8] & 0b01000000) > 0 { faults = append(faults, "Outside air temp (high voltage)") }
-// 	  if (buffer[8] & 0b00100000) > 0 { faults = append(faults, "Power supply (high voltage)") }
-// 	  if (buffer[8] & 0b00010000) > 0 { faults = append(faults, "Oil temperature (high voltage)") }
-// 	  if (buffer[8] & 0b00000100) > 0 { faults = append(faults, "Coolant temperature (high voltage)") }
-// 	  if (buffer[8] & 0b00000001) > 0 { faults = append(faults, "System (high voltage)") }
-// 	}
-//
-// 	if len(buffer) >= 10 {
-// 	  if (buffer[9] & 0b10000000) > 0 { faults = append(faults, "Battery (high voltage)") }
-// 	  if (buffer[9] & 0b10000) > 0 { faults = append(faults, "Lambda 1 bank 1 (high voltage)") }
-// 	  if (buffer[9] & 0b100) > 0 { faults = append(faults, "Throttle pot (high voltage)") }
-// 	  if (buffer[9] & 0b10) > 0 { faults = append(faults, "Intake air temp (high voltage)") }
-// 	  if (buffer[9] & 0b1) > 0 { faults = append(faults, "MAP sensor (high voltage)") }
-// 	}
-//
-// 	if len(buffer) >= 13 {
-// 	  if (buffer[12] & 0b1000000) > 0 { faults = append(faults, "Outside temp sensor (present)") }
-// 	  if (buffer[12] & 0b100000) > 0 { faults = append(faults, "Power supply (present)") }
-// 	  if (buffer[12] & 0b10000) > 0 { faults = append(faults, "Oil temp (present)") }
-// 	  if (buffer[12] & 0b100) > 0 { faults = append(faults, "Coolant temp (present)") }
-// 	  if (buffer[12] & 0b100) > 0 { faults = append(faults, "System voltage (present)") }
-// 	}
-//
-// 	if len(buffer) >= 14 {
-// 	  if (buffer[13] & 0b10000000) > 0 { faults = append(faults, "Battery voltage (present)") }
-// 	  if (buffer[13] & 0b10000) > 0 { faults = append(faults, "Lambda 1 bank 1 (present)") }
-// 	  if (buffer[13] & 0b100) > 0 { faults = append(faults, "Throttle pot (present)") }
-// 	  if (buffer[13] & 0b10) > 0 { faults = append(faults, "Intake air temp (present)") }
-// 	  if (buffer[13] & 0b1) > 0 { faults = append(faults, "MAP sensor (present)") }
-// 	}
-//
-// 	if len(buffer) >= 24 {
-// 	  if (buffer[23] & 0b1000) > 0 { faults = append(faults, "MAP sensor (present 2)") }
-// 	  if (buffer[23] & 0b100) > 0 { faults = append(faults, "Oil temp (present 2)") }
-// 	  if (buffer[23] & 0b10) > 0 { faults = append(faults, "Intake air temp (present 2)") }
-// 	  if (buffer[23] & 0b1) > 0 { faults = append(faults, "Coolant temp (present 2)") }
-// 	}
-//
-// 	if len(buffer) >= 26 {
-// 	  if (buffer[25] & 0b1000) > 0 { faults = append(faults, "MAP sensor (historic)") }
-// 	  if (buffer[25] & 0b100) > 0 { faults = append(faults, "Oil temp (historic)") }
-// 	  if (buffer[25] & 0b10) > 0 { faults = append(faults, "Intake air temp (historic)") }
-// 	  if (buffer[25] & 0b1) > 0 { faults = append(faults, "Coolant temp (historic)") }
-// 	}
-//
-// 	if len(buffer) >= 27 {
-// 	  if (buffer[26] & 0b00000001) > 0 { faults = append(faults, "Road speed sensor (present)") }
-// 	  if (buffer[26] & 0b00000010) > 0 { faults = append(faults, "Comm. with AT (present)") }
-// 	  if (buffer[26] & 0b00010000) > 0 { faults = append(faults, "Feedback (present)") }
-// 	}
-//
-// 	if len(buffer) >= 28 {
-// 	  if (buffer[27] & 0b00000001) > 0 { faults = append(faults, "Road speed sensor (historic)") }
-// 	  if (buffer[27] & 0b00000010) > 0 { faults = append(faults, "Comm. with AT (historic)") }
-// 	  if (buffer[27] & 0b00010000) > 0 { faults = append(faults, "Feedback (historic)") }
-// 	}
-//
-// 	globalFaults = faults
-// }
+
+func ecu3ParseFaults(buffer []byte) {
+	fmt.Printf("ecu3ParseFaults got %d bytes \n%s", len(buffer), hex.Dump(buffer))
+
+	faults := []string {}
+
+  buffer = buffer[2:] // throw away command
+  for len(buffer) >= 3 {
+    thisfault := int(buffer[0]) << 8
+    thisfault += int(buffer[1])
+
+    faulttype := int(buffer[2])
+
+		output_fault_type, ok := ecu3FaultTypes[int(faulttype)];
+		if !ok {
+			output_fault_type = "unknown ("+string(int(faulttype))+")"
+		}
+
+    output_fault, ok := ecu3Faults[int(thisfault)]
+		if !ok {
+			output_fault = "unknown ("+string(int(thisfault))+")"
+		}
+
+    full_output_text := "Fault - "+output_fault+" - "+output_fault_type
+
+		faults = append(faults, full_output_text)
+
+    if len(buffer) > 3 {
+      buffer = buffer[3:]
+    } else {
+      buffer = nil
+    }
+  }
+
+	//
+	//
+	// if len(buffer) >= 5 {
+	// 	if (buffer[4] & 0b01000000) > 0 {	faults = append(faults, "Outside air temp (low voltage)") }
+	//   if (buffer[4] & 0b00100000) > 0 { faults = append(faults, "Power supply (low voltage)") }
+	//   if (buffer[4] & 0b00010000) > 0 { faults = append(faults, "Engine oil temp (low voltage)") }
+	//   if (buffer[4] & 0b00000100) > 0 { faults = append(faults, "Coolant temp (low voltage)") }
+	//   if (buffer[4] & 0b00000001) > 0 { faults = append(faults, "System (low voltage)") }
+	// }
+	//
+	//
+	// if len(buffer) >= 6 {
+	//   if (buffer[5] & 0b10000000) > 0 { faults = append(faults, "Battery (low voltage)") }
+	//   if (buffer[5] & 0b00010000) > 0 { faults = append(faults, "Lambda 1 bank 1 (low voltage)") }
+	//   if (buffer[5] & 0b00000100) > 0 { faults = append(faults, "Throttle pot (low voltage)") }
+	//   if (buffer[5] & 0b00000010) > 0 { faults = append(faults, "Air intake (low voltage)") }
+	//   if (buffer[5] & 0b00000001) > 0 { faults = append(faults, "MAP sensor (low voltage)") }
+	// }
+	//
+	// if len(buffer) >= 9 {
+	//   if (buffer[8] & 0b01000000) > 0 { faults = append(faults, "Outside air temp (high voltage)") }
+	//   if (buffer[8] & 0b00100000) > 0 { faults = append(faults, "Power supply (high voltage)") }
+	//   if (buffer[8] & 0b00010000) > 0 { faults = append(faults, "Oil temperature (high voltage)") }
+	//   if (buffer[8] & 0b00000100) > 0 { faults = append(faults, "Coolant temperature (high voltage)") }
+	//   if (buffer[8] & 0b00000001) > 0 { faults = append(faults, "System (high voltage)") }
+	// }
+	//
+	// if len(buffer) >= 10 {
+	//   if (buffer[9] & 0b10000000) > 0 { faults = append(faults, "Battery (high voltage)") }
+	//   if (buffer[9] & 0b10000) > 0 { faults = append(faults, "Lambda 1 bank 1 (high voltage)") }
+	//   if (buffer[9] & 0b100) > 0 { faults = append(faults, "Throttle pot (high voltage)") }
+	//   if (buffer[9] & 0b10) > 0 { faults = append(faults, "Intake air temp (high voltage)") }
+	//   if (buffer[9] & 0b1) > 0 { faults = append(faults, "MAP sensor (high voltage)") }
+	// }
+	//
+	// if len(buffer) >= 13 {
+	//   if (buffer[12] & 0b1000000) > 0 { faults = append(faults, "Outside temp sensor (present)") }
+	//   if (buffer[12] & 0b100000) > 0 { faults = append(faults, "Power supply (present)") }
+	//   if (buffer[12] & 0b10000) > 0 { faults = append(faults, "Oil temp (present)") }
+	//   if (buffer[12] & 0b100) > 0 { faults = append(faults, "Coolant temp (present)") }
+	//   if (buffer[12] & 0b100) > 0 { faults = append(faults, "System voltage (present)") }
+	// }
+	//
+	// if len(buffer) >= 14 {
+	//   if (buffer[13] & 0b10000000) > 0 { faults = append(faults, "Battery voltage (present)") }
+	//   if (buffer[13] & 0b10000) > 0 { faults = append(faults, "Lambda 1 bank 1 (present)") }
+	//   if (buffer[13] & 0b100) > 0 { faults = append(faults, "Throttle pot (present)") }
+	//   if (buffer[13] & 0b10) > 0 { faults = append(faults, "Intake air temp (present)") }
+	//   if (buffer[13] & 0b1) > 0 { faults = append(faults, "MAP sensor (present)") }
+	// }
+	//
+	// if len(buffer) >= 24 {
+	//   if (buffer[23] & 0b1000) > 0 { faults = append(faults, "MAP sensor (present 2)") }
+	//   if (buffer[23] & 0b100) > 0 { faults = append(faults, "Oil temp (present 2)") }
+	//   if (buffer[23] & 0b10) > 0 { faults = append(faults, "Intake air temp (present 2)") }
+	//   if (buffer[23] & 0b1) > 0 { faults = append(faults, "Coolant temp (present 2)") }
+	// }
+	//
+	// if len(buffer) >= 26 {
+	//   if (buffer[25] & 0b1000) > 0 { faults = append(faults, "MAP sensor (historic)") }
+	//   if (buffer[25] & 0b100) > 0 { faults = append(faults, "Oil temp (historic)") }
+	//   if (buffer[25] & 0b10) > 0 { faults = append(faults, "Intake air temp (historic)") }
+	//   if (buffer[25] & 0b1) > 0 { faults = append(faults, "Coolant temp (historic)") }
+	// }
+	//
+	// if len(buffer) >= 27 {
+	//   if (buffer[26] & 0b00000001) > 0 { faults = append(faults, "Road speed sensor (present)") }
+	//   if (buffer[26] & 0b00000010) > 0 { faults = append(faults, "Comm. with AT (present)") }
+	//   if (buffer[26] & 0b00010000) > 0 { faults = append(faults, "Feedback (present)") }
+	// }
+	//
+	// if len(buffer) >= 28 {
+	//   if (buffer[27] & 0b00000001) > 0 { faults = append(faults, "Road speed sensor (historic)") }
+	//   if (buffer[27] & 0b00000010) > 0 { faults = append(faults, "Comm. with AT (historic)") }
+	//   if (buffer[27] & 0b00010000) > 0 { faults = append(faults, "Feedback (historic)") }
+	// }
+
+	globalFaults = faults
+}
