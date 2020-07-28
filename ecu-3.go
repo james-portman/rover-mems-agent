@@ -125,7 +125,7 @@ func ecu3SendNextCommand(sp sers.SerialPort, previousResponse []byte) {
 	} else if slicesEqual(previousResponse, ecu3ResponseData21) { ecu3SendCommand(sp, ecu3PingCommand)
 
 	} else if slicesEqual(previousResponse, ecu3FaultsClearedResponse) {
-		sp.Write(ecu3RequestFaultsCommand)
+		ecu3SendCommand(sp, ecu3RequestFaultsCommand)
 		globalAlert = "ECU reports faults cleared"
 
 	} else { // fall back to ping
@@ -327,6 +327,21 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 
 		if slicesEqual(actualData[0:2], ecu3ResponseData00) {
 			fmt.Println("got data packet 00")
+			coolant_temp := int(actualData[2]) << 8;
+			coolant_temp += int(actualData[3]);
+			coolant_temp -= 2730;
+			globalDataOutput["coolant_temp"] = float32(coolant_temp) / 10
+			// 4,5    0xA, 0xAA, # coolant temp input signal (same scale?)
+			oil_temp := int(actualData[6]) << 8;
+			oil_temp += int(actualData[7]);
+			oil_temp -= 2730;
+			globalDataOutput["oil_temp"] = float32(oil_temp) / 10
+			// 8,9    0xA, 0xAA, # ditto input signal
+			intake_air_temp := int(actualData[10]) << 8;
+			intake_air_temp += int(actualData[11]);
+			intake_air_temp -= 2730;
+			globalDataOutput["intake_air_temp"] = float32(intake_air_temp) / 10
+
 			buffer = nil
 			time.Sleep(50 * time.Millisecond)
 			ecu3SendNextCommand(sp, ecu3ResponseData00)
@@ -334,6 +349,21 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 		}
 		if slicesEqual(actualData[0:2], ecu3ResponseData06) {
 			fmt.Println("got data packet 06")
+			mapKpa := actualData[2] << 8;
+      mapKpa += actualData[3];
+			globalDataOutput["map_sensor_kpa"] = float32(mapKpa) / 100
+      // map_input_signal = actualData[4] << 8;
+      // map_input_signal += actualData[5];
+      // map_input_signal /= 100;
+
+      throttleMv := actualData[8] << 8;
+      throttleMv += actualData[9];
+			globalDataOutput["throttle_mv"] = float32(throttleMv)
+
+      rpm := int(actualData[10]) << 8;
+      rpm += int(actualData[11]);
+			globalDataOutput["rpm"] = float32(rpm)
+
 			buffer = nil
 			time.Sleep(50 * time.Millisecond)
 			ecu3SendNextCommand(sp, ecu3ResponseData06)
@@ -341,6 +371,25 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 		}
 		if slicesEqual(actualData[0:2], ecu3ResponseData0A) {
 			fmt.Println("got data packet 0A")
+			fuel_feedback := actualData[2] << 8;
+      fuel_feedback += actualData[3];
+			globalDataOutput["fuel_feedback_percent"] = float32(fuel_feedback) / 100
+
+      pre_lambda_mv := actualData[4] << 8;
+      pre_lambda_mv += actualData[5];
+			globalDataOutput["lambda_mv"] = float32(pre_lambda_mv)
+      /*
+      TODO: rear/secondary lambda
+      send_command([0x61, 0xa,
+          0x27, 0x10, # a/f regulation/feedback /100 (%)
+          0x0, 0xda, # front/pre cat lambda mv
+          0x0, 0xe3, # ditto input signal
+          0x27, 0x10, # bank 2 a/f regulation?
+          0x1, 0xda, # rear/post cat lambda mv
+          0x1, 0xe3, # ditto input signal
+          0x0, 0x0
+      ])
+      */
 			buffer = nil
 			time.Sleep(50 * time.Millisecond)
 			ecu3SendNextCommand(sp, ecu3ResponseData0A)
@@ -348,6 +397,12 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 		}
 		if slicesEqual(actualData[0:2], ecu3ResponseData0B) {
 			fmt.Println("got data packet 0B")
+			coil1 := actualData[2] << 8;
+      coil1 += actualData[3];
+			globalDataOutput["coil_1_time_uS"] = float32(coil1)
+      coil2 := actualData[4] << 8;
+      coil2 += actualData[5];
+			globalDataOutput["coil_2_time_uS"] = float32(coil2)
 			buffer = nil
 			time.Sleep(50 * time.Millisecond)
 			ecu3SendNextCommand(sp, ecu3ResponseData0B)
@@ -355,151 +410,14 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 		}
 		if slicesEqual(actualData[0:2], ecu3ResponseData21) {
 			fmt.Println("got data packet 21")
+			rpmdev := actualData[2] << 8;
+      rpmdev += actualData[3];
+      globalDataOutput["rpm_deviation"] = float32(rpmdev)
 			buffer = nil
 			time.Sleep(50 * time.Millisecond)
 			ecu3SendNextCommand(sp, ecu3ResponseData21)
 			continue
 		}
-						// if slicesEqual(actualData[0:2], ecu3ResponseData0A) {
-		// 	fmt.Println("got data packet 0A")
-		// 	feedback := int(actualData[2]) << 8
-		// 	feedback += int(actualData[3])
-		// 	feedbackFloat := float32(feedback) / 100
-		// 	globalDataOutput["fuelling_feedback_percent"] = feedbackFloat
-		//
-		// 	o2mv := int(actualData[4]) << 8
-		// 	o2mv += int(actualData[5])
-		// 	globalDataOutput["o2_mv"] = float32(o2mv)
-		//
-		// 	airFuel := ((float32(o2mv) / 1000) * 2) + 10
-		// 	globalDataOutput["estimate_air_fuel"] = airFuel
-		//
-		// 	buffer = nil
-		// 	time.Sleep(50 * time.Millisecond)
-		// 	ecu3SendNextCommand(sp, ecu3ResponseData0A)
-		// 	continue
-		// }
-		// if slicesEqual(actualData[0:2], ecu3ResponseData0B) {
-		// 	fmt.Println("got data packet 0B")
-		// 	globalDataOutput["coil_1_charge_time"] = float32(actualData[2]) / 1000
-		// 	globalDataOutput["coil_2_charge_time"] = float32(actualData[3]) / 1000
-		// 	buffer = nil
-		// 	time.Sleep(50 * time.Millisecond)
-		// 	ecu3SendNextCommand(sp, ecu3ResponseData0B)
-		// 	continue
-		// }
-		// if slicesEqual(actualData[0:2], ecu3ResponseData0C) {
-		// 	fmt.Println("got data packet 0C")
-		// 	globalDataOutput["injector_1_pw"] = float32(actualData[2])
-		// 	globalDataOutput["injector_2_pw"] = float32(actualData[3])
-		// 	globalDataOutput["injector_3_pw"] = float32(actualData[4])
-		// 	globalDataOutput["injector_4_pw"] = float32(actualData[5])
-		// 	buffer = nil
-		// 	time.Sleep(50 * time.Millisecond)
-		// 	ecu3SendNextCommand(sp, ecu3ResponseData0C)
-		// 	continue
-		// }
-		// if slicesEqual(actualData[0:2], ecu3ResponseData0D) {
-		// 	fmt.Println("got data packet 0D")
-		// 	globalDataOutput["vehicle_speed"] = float32(actualData[2])
-		// 	buffer = nil
-		// 	time.Sleep(50 * time.Millisecond)
-		// 	ecu3SendNextCommand(sp, ecu3ResponseData0D)
-		// 	continue
-		// }
-		// if slicesEqual(actualData[0:2], ecu3ResponseData0F) {
-		// 	fmt.Println("got data packet 0F")
-		// 	globalDataOutput["throttle_switch"] = float32(int(actualData[2]) & 1) // 0b00000001
-		// 	globalDataOutput["ignition"] = float32((int(actualData[2]) >> 1) & 1) // 0b00000010
-		// 	globalDataOutput["ac_button"] = float32((int(actualData[2]) >> 3) & 1) // 0b00001000
-		// 	buffer = nil
-		// 	time.Sleep(50 * time.Millisecond)
-		// 	ecu3SendNextCommand(sp, ecu3ResponseData0F)
-		// 	continue
-		// }
-		// if slicesEqual(actualData[0:2], ecu3ResponseData10) {
-		// 	fmt.Println("got data packet 10")
-		// 	battery := int(actualData[4]) << 8
-		// 	battery += int(actualData[5])
-		// 	batteryFloat := float32(battery) / 1000
-		// 	globalDataOutput["battery_voltage"] = batteryFloat
-		// 	buffer = nil
-		// 	time.Sleep(50 * time.Millisecond)
-		// 	ecu3SendNextCommand(sp, ecu3ResponseData10)
-		// 	continue
-		// }
-		// if slicesEqual(actualData[0:2], ecu3ResponseData11) {
-		// 	fmt.Println("got data packet 11")
-		// 	// 0 means OK, 1 bad
-		// 	// will swap for our purposes
-		// 	// output is 1 for yes
-		// 	camSync := actualData[2] & 1 // 0b00000001
-		// 	globalDataOutput["cam_sync"] = float32(1 - camSync)
-		// 	crankSync := (actualData[2] >> 1) & 1 //0b00000010
-		// 	globalDataOutput["crank_sync"] = float32(1 - crankSync)
-		//
-		// 	buffer = nil
-		// 	time.Sleep(50 * time.Millisecond)
-		// 	ecu3SendNextCommand(sp, ecu3ResponseData11)
-		// 	continue
-		// }
-		// if slicesEqual(actualData[0:2], ecu3ResponseData12) {
-		// 	fmt.Println("got data packet 12")
-		// 	idleValvePos := int(actualData[2]) << 8
-		// 	idleValvePos += int(actualData[3])
-		// 	idleValveFloat := float32(idleValvePos) / 2
-		// 	globalDataOutput["idle_valve_pos"] = idleValveFloat
-		// 	buffer = nil
-		// 	time.Sleep(50 * time.Millisecond)
-		// 	ecu3SendNextCommand(sp, ecu3ResponseData12)
-		// 	continue
-		// }
-		// if slicesEqual(actualData[0:2], ecu3ResponseData13) {
-		// 	fmt.Println("got data packet 13")
-		// 	globalDataOutput["closed_loop"] = float32(actualData[2] & 0b00000001)
-		// 	buffer = nil
-		// 	time.Sleep(50 * time.Millisecond)
-		// 	ecu3SendNextCommand(sp, ecu3ResponseData13)
-		// 	continue
-		// }
-		// if slicesEqual(actualData[0:2], ecu3ResponseData21) {
-		// 	fmt.Println("got data packet 21")
-		// 	rpmError := int(actualData[2]) << 8
-		// 	rpmError += int(actualData[3])
-		// 	if rpmError > 32768 {
-		// 		rpmError -= 65535
-		// 	}
-		// 	globalDataOutput["rpm_error"] = float32(rpmError)
-		// 	buffer = nil
-		// 	time.Sleep(50 * time.Millisecond)
-		// 	ecu3SendNextCommand(sp, ecu3ResponseData21)
-		// 	continue
-		// }
-		// if slicesEqual(actualData[0:2], ecu3ResponseData25) {
-		// 	fmt.Println("got data packet 25")
-		// 	camPercent := int(actualData[2]) << 8
-		// 	camPercent += int(actualData[3])
-		// 	globalDataOutput["cam_percent"] = float32(camPercent)
-		// 	buffer = nil
-		// 	time.Sleep(50 * time.Millisecond)
-		// 	ecu3SendNextCommand(sp, ecu3ResponseData25)
-		// 	continue
-		// }
-		// if slicesEqual(actualData[0:2], ecu3ResponseData3A) {
-		// 	fmt.Println("got data packet 3A")
-		// 	idleTimingOffset := int(actualData[2]) << 8
-		// 	idleTimingOffset += int(actualData[3])
-		// 	idleTimingOffsetFloat := float32(idleTimingOffset) / 10
-		// 	globalDataOutput["idle_timing_offset"] = idleTimingOffsetFloat
-		//
-		// 	idleAdjusterRpm := int(actualData[4]) << 8
-		// 	idleAdjusterRpm += int(actualData[5])
-		// 	globalDataOutput["idle_adjuster_rpm"] = float32(idleAdjusterRpm)
-		// 	buffer = nil
-		// 	time.Sleep(50 * time.Millisecond)
-		// 	ecu3SendNextCommand(sp, ecu3ResponseData3A)
-		// 	continue
-		// }
 
 		// if we get here then something is wrong with the data
 
