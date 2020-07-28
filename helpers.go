@@ -11,3 +11,11 @@ func slicesEqual(a, b []byte) bool {
     }
     return true
 }
+
+func xor_all_bytes(bytes []byte) byte {
+  output := byte(0)
+  for i:=0; i<len(bytes); i++ {
+    output = output ^ bytes[i]
+  }
+  return output
+}

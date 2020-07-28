@@ -9,11 +9,25 @@ import (
 )
 
 var (
+	ecu3RequestHeader = []byte {0xB8, 0x13, 0xF7}
+
 	ecu3InitCommand = []byte {0x1A, 0x9A}
-	// ecu3StartDiagnostic = []byte {0x10, 0xA0}
-	// ecu3RequestSeed = []byte {0x27, 0x01}
-	// ecu3SendKey = []byte {0x27, 0x02}
-	// ecu3PingCommand = []byte {0x3E}
+	ecu3InitAccepted = []byte {0x5A, 0x9A}
+
+	ecu3StartDiagnostic = []byte {0x10, 0xA0}
+	ecu3StartDiagResponse = []byte {0x50}
+
+	ecu3RequestSeed = []byte {0x27, 0x01}
+	ecu3SeedResponse = []byte {0x67, 0x01}
+	ecu3Seed = 0
+
+	ecu3SendKey = []byte {0x27, 0x02}
+	ecu3KeyAcceptResponse = []byte {0x67, 0x02}
+	ecu3Key = 0
+
+	ecu3PingCommand = []byte {0x3E}
+	ecu3PongResponse = []byte {0x7E}
+
 	// ecu3ClearFaultsCommand = []byte {0x31, 0xCB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
 	//
 	// ecu3RequestFaultsCommand = []byte {0x21, 0x19}
@@ -41,12 +55,8 @@ var (
 	// ecu3RequestData3A = []byte {0x21, 0x3A}
 	//
 	// ecu3WokeResponse = []byte {0xc1, 0xd5, 0x8f}
-	// ecu3StartDiagResponse = []byte {0x50}
-	// ecu3SeedResponse = []byte {0x67, 0x01}
-	// ecu3Seed = 0
-	// ecu3Key = 0
-	// ecu3KeyAcceptResponse = []byte {0x67, 0x02}
-	// ecu3PongResponse = []byte {0x7E}
+
+
 	// ecu3FaultsClearedResponse = []byte {0x71, 0xCB}
 	//
 	// ecu3FaultsResponse = []byte {0x61, 0x19}
@@ -125,7 +135,7 @@ var (
 // }
 
 //
-// func ecu3SendNextCommand(sp sers.SerialPort, previousResponse []byte) {
+func ecu3SendNextCommand(sp sers.SerialPort, previousResponse []byte) {
 // 	if globalUserCommand != "" {
 // 		command, ok := ecu3UserCommands[globalUserCommand];
 // 		if ok {
@@ -138,21 +148,21 @@ var (
 // 	}
 //
 // 	globalUserCommand = ""
-// 	if slicesEqual(previousResponse, ecu3WokeResponse) {
-// 		ecu3SendCommand(sp, ecu3StartDiagnostic)
-//
-// 	} else if slicesEqual(previousResponse, ecu3StartDiagResponse) {
-// 		ecu3SendCommand(sp, ecu3RequestSeed)
-//
-// 	} else if slicesEqual(previousResponse, ecu3SeedResponse) {
-// 		command := append(ecu3SendKey, byte(ecu3Key >> 8))
-// 		command = append(command, byte(ecu3Key & 0xFF))
-// 		ecu3SendCommand(sp, command)
-//
-// 	} else if slicesEqual(previousResponse, ecu3KeyAcceptResponse) {
-// 		ecu3SendCommand(sp, ecu3PingCommand)
-//
-// 	} else if slicesEqual(previousResponse, ecu3PongResponse) {
+	if slicesEqual(previousResponse, ecu3InitAccepted) {
+		ecu3SendCommand(sp, ecu3StartDiagnostic)
+	// }
+} else if slicesEqual(previousResponse, ecu3StartDiagResponse) {
+		ecu3SendCommand(sp, ecu3RequestSeed)
+
+} else if slicesEqual(previousResponse, ecu3SeedResponse) {
+		command := append(ecu3SendKey, byte(ecu3Key >> 8))
+		command = append(command, byte(ecu3Key & 0xFF))
+		ecu3SendCommand(sp, command)
+
+	} else if slicesEqual(previousResponse, ecu3KeyAcceptResponse) {
+		ecu3SendCommand(sp, ecu3PingCommand)
+
+//  } else if slicesEqual(previousResponse, ecu3PongResponse) {
 // 		ecu3SendCommand(sp, ecu3RequestFaultsCommand)
 //
 // 	} else if slicesEqual(previousResponse, ecu3FaultsClearedResponse) {
@@ -189,11 +199,20 @@ var (
 // 	// 	sp.Write(ecu3RequestFaultsCommand)
 // 	// 	globalAlert = "ECU reports faults cleared"
 //
-// 	} else { // fall back to ping
-// 		ecu3SendCommand(sp, ecu3PingCommand)
-// 	}
+	} else { // fall back to ping
+		ecu3SendCommand(sp, ecu3PingCommand)
+	}
 //
-// }
+}
+
+func ecu3SendCommand(sp sers.SerialPort, data []byte) {
+  output := ecu3RequestHeader // []byte {0xB8, 0x13, 0xF7} // always
+	output = append(output, byte(len(data)))
+	output = append(output, data...)
+  output = append(output, xor_all_bytes(output))
+	sp.Write(output)
+	// fmt.Println("> command sent")
+}
 
 
 func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
@@ -207,7 +226,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 	}
 	defer sp.Close()
 
-	err = sp.SetMode(10400, 8, sers.N, 1, sers.NO_HANDSHAKE)
+	err = sp.SetMode(9600, 8, sers.E, 1, sers.NO_HANDSHAKE)
 	if err != nil {
 		return nil, err
 	}
@@ -224,8 +243,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 	fmt.Println("Serial cable set to:")
 	fmt.Println(mode)
 
-	sp.Write(ecu3InitCommand)
-
+	ecu3SendCommand(sp, ecu3InitCommand)
 
 	buffer := make([]byte, 0)
 
@@ -245,53 +263,66 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 			readLoops = 0 // reset timeout
 		}
 
-		// // clear leading zeros (from our wake up)
-		// for len(buffer) > 0 && buffer[0] == 0x00 {
-		// 	buffer = buffer[1:]
-		// }
-
 		if len(buffer) == 0 { continue }
 
 		// check for init echo
-		// if len(buffer) >= 5 && slicesEqual(buffer[0:5], ecu3InitCommand) {
-		// 	// fmt.Println("Got our init echo")
-		// 	buffer = buffer[5:]
-		// 	continue
-		// }
+		if len(buffer) >= 2 && slicesEqual(buffer[0:2], ecu3InitCommand) {
+			fmt.Println("Got our init echo")
+			buffer = buffer[2:]
+			continue
+		}
 
 		// check for full commands - our echos and responses too
+		// [always 3 byte header] [data length] [data...] [checksum]
 
-		// if len(buffer) < int(buffer[0]) + 2 {
-		// 	// fmt.Println("waiting for rest of data packet")
-		// 	continue
-		// }
+		if len(buffer) < 4 { continue } // no length byte yet
+		dataLength := int(buffer[3])
+		totalLength := 3 + 1 + dataLength + 1
+		if len(buffer) < totalLength { continue } // have length byte but not whole packet yet
 
 		// TODO: check checksum ?
 
-		// actualData := buffer[1:int(buffer[0])+1]
-		fmt.Printf("buffer: got %d bytes \n%s", len(buffer), hex.Dump(buffer))
-		//
-		// // our echos
-		// if slicesEqual(actualData, ecu3PingCommand) {
-		// 	// fmt.Println("Got our ping echo")
-		// 	buffer = buffer[(len(ecu3PingCommand)+2):]
-		// 	continue
-		// }
-		// if slicesEqual(actualData, ecu3StartDiagnostic) {
-		// 	// fmt.Println("Got our start diag echo")
-		// 	buffer = buffer[(len(ecu3StartDiagnostic)+2):]
-		// 	continue
-		// }
-		// if slicesEqual(actualData, ecu3RequestSeed) {
-		// 	// fmt.Println("Got our seed req echo")
-		// 	buffer = buffer[(len(ecu3RequestSeed)+2):]
-		// 	continue
-		// }
-		// if slicesEqual(actualData[0:2], ecu3SendKey) {
-		// 	// fmt.Println("Got our key send echo")
-		// 	buffer = buffer[(len(ecu3SendKey)+2+2):] // extra 2 for key
-		// 	continue
-		// }
+		// thisPacket := buffer[0:totalLength]
+		actualData := buffer[4:4+dataLength]
+
+		// our echos
+		if slicesEqual(buffer[0:3], ecu3RequestHeader) {
+			// fmt.Println("This looks like our own echo")
+
+			if slicesEqual(actualData, ecu3InitCommand) {
+				// fmt.Println("Got our init echo")
+				buffer = buffer[totalLength:]
+				continue
+			}
+			if slicesEqual(actualData, ecu3StartDiagnostic) {
+				// fmt.Println("Got our start diag echo")
+				buffer = buffer[totalLength:]
+				continue
+			}
+			if slicesEqual(actualData, ecu3RequestSeed) {
+				// fmt.Println("Got our seed req echo")
+				buffer = buffer[totalLength:]
+				continue
+			}
+			if slicesEqual(actualData[0:2], ecu3SendKey) {
+				// fmt.Println("Got our key send echo")
+				buffer = buffer[totalLength:]
+				// buffer = buffer[(len(ecu3SendKey)+2+2):] // extra 2 for key
+				continue
+			}
+			if slicesEqual(actualData, ecu3PingCommand) {
+				// fmt.Println("Got our ping echo")
+				buffer = buffer[totalLength:]
+				continue
+			}
+
+			// echo not caught if we end up here
+			fmt.Println("*** Unknown echo caught here")
+			fmt.Printf("buffer: got %d bytes \n%s", len(buffer), hex.Dump(buffer))
+			buffer = buffer[totalLength:]
+			continue
+
+		} // end of our echos
 		// if slicesEqual(actualData, ecu3ClearFaultsCommand) {
 		// 	// fmt.Println("Got our clear faults echo")
 		// 	buffer = buffer[(len(ecu3ClearFaultsCommand)+2):]
@@ -323,49 +354,60 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 		// if slicesEqual(actualData, ecu3RequestData21) { buffer = buffer[4:]; continue }
 		// if slicesEqual(actualData, ecu3RequestData25) { buffer = buffer[4:]; continue }
 		// if slicesEqual(actualData, ecu3RequestData3A) { buffer = buffer[4:]; continue }
+
 		//
-		// // actual responses
+		// actual responses
 		//
-		// if slicesEqual(actualData, ecu3WokeResponse) {
-		// 	fmt.Println("< ECU woke up")
-		// 	buffer = nil
-		// 	globalConnected = true
-		// 	time.Sleep(50 * time.Millisecond)
-		// 	ecu3SendNextCommand(sp, ecu3WokeResponse)
-		// 	continue
-		// }
-		// if slicesEqual(actualData, ecu3StartDiagResponse) {
-		// 	fmt.Println("< Diag mode accepted")
-		// 	buffer = nil
-		// 	time.Sleep(50 * time.Millisecond)
-		// 	ecu3SendNextCommand(sp, ecu3StartDiagResponse)
-		// 	continue
-		// }
-		// if slicesEqual(actualData[0:2], ecu3SeedResponse) {
-		// 	fmt.Println("< seed")
-		// 	ecu3Seed = int(actualData[2]) << 8
-		// 	ecu3Seed += int(actualData[3])
-		// 	// do key generation
-		// 	ecu3Key = generateKey(ecu3Seed)
-		// 	buffer = nil
-		// 	time.Sleep(50 * time.Millisecond)
-		// 	ecu3SendNextCommand(sp, ecu3SeedResponse)
-		// 	continue
-		// }
-		// if slicesEqual(actualData, ecu3KeyAcceptResponse) {
-		// 	fmt.Println("< Key accepted")
-		// 	buffer = nil
-		// 	time.Sleep(50 * time.Millisecond)
-		// 	ecu3SendNextCommand(sp, ecu3KeyAcceptResponse)
-		// 	continue
-		// }
-		// if slicesEqual(actualData, ecu3PongResponse) {
-		// 	fmt.Println("< PONG")
-		// 	buffer = nil
-		// 	time.Sleep(50 * time.Millisecond)
-		// 	ecu3SendNextCommand(sp, ecu3PongResponse)
-		// 	continue
-		// }
+		if slicesEqual(actualData[0:2], ecu3InitAccepted) {
+			fmt.Println("< ECU woke up")
+			buffer = nil
+			globalConnected = true
+			time.Sleep(50 * time.Millisecond)
+			ecu3SendNextCommand(sp, ecu3InitAccepted)
+			continue
+		}
+		if slicesEqual(actualData, ecu3StartDiagResponse) {
+			fmt.Println("< Diag mode accepted")
+			buffer = nil
+			time.Sleep(50 * time.Millisecond)
+			ecu3SendNextCommand(sp, ecu3StartDiagResponse)
+			continue
+		}
+		if slicesEqual(actualData[0:2], ecu3SeedResponse) {
+			fmt.Println("< seed")
+			ecu3Seed = int(actualData[2]) << 8
+			ecu3Seed += int(actualData[3])
+			fmt.Println(ecu3Seed)
+			if ecu3Seed == 0 { // auth not required/already done
+				ecu3Key = 0
+				buffer = nil
+				time.Sleep(50 * time.Millisecond)
+				ecu3SendNextCommand(sp, nil)
+				continue
+			} else {
+				// do key generation
+				ecu3Key = generateKey(ecu3Seed)
+				buffer = nil
+				time.Sleep(50 * time.Millisecond)
+				ecu3SendNextCommand(sp, ecu3SeedResponse)
+				continue
+			}
+
+		}
+		if slicesEqual(actualData, ecu3KeyAcceptResponse) {
+			fmt.Println("< Key accepted")
+			buffer = nil
+			time.Sleep(50 * time.Millisecond)
+			ecu3SendNextCommand(sp, ecu3KeyAcceptResponse)
+			continue
+		}
+		if slicesEqual(actualData, ecu3PongResponse) {
+			fmt.Println("< PONG")
+			buffer = nil
+			time.Sleep(50 * time.Millisecond)
+			ecu3SendNextCommand(sp, ecu3PongResponse)
+			continue
+		}
 		// if slicesEqual(actualData, ecu3FaultsClearedResponse) {
 		// 	fmt.Println("< FAULT CLEARED")
 		// 	globalAlert = "ECU reports faults cleared"
@@ -626,6 +668,10 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 		// fmt.Printf("unknown command in buffer (burning it): got %d bytes \n%s", len(buffer), hex.Dump(buffer))
 		// buffer = nil
 		// ecu3SendNextCommand(sp, ecu3PongResponse)
+
+		fmt.Printf("unknown command in buffer (burning it): got %d bytes \n%s", len(buffer), hex.Dump(buffer[0:totalLength]))
+		fmt.Printf("actualData %d bytes \n%s", len(actualData), hex.Dump(actualData))
+		buffer = buffer[totalLength:]
 
 	}
 	if readLoops >= readLoopsLimit {
