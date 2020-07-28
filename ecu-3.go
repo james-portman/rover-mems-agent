@@ -246,45 +246,13 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 			}
 
 			// echo not caught if we end up here
-			fmt.Println("*** Unknown echo caught here")
-			fmt.Printf("buffer: got %d bytes \n%s", len(buffer), hex.Dump(buffer))
+			// don't really care, if it's obviously our echo then it's fine
+			// fmt.Println("*** Unknown echo caught here")
+			// fmt.Printf("buffer: got %d bytes \n%s", len(buffer), hex.Dump(buffer))
 			buffer = buffer[totalLength:]
 			continue
 
 		} // end of our echos
-
-		// old/possible echos:
-		// if slicesEqual(actualData, ecu3ClearFaultsCommand) {
-		// 	// fmt.Println("Got our clear faults echo")
-		// 	buffer = buffer[(len(ecu3ClearFaultsCommand)+2):]
-		// 	continue
-		// }
-		// if slicesEqual(actualData, ecu3RequestFaultsCommand) {
-		// 	// fmt.Println("Got our request faults echo")
-		// 	buffer = buffer[(len(ecu3RequestFaultsCommand)+2):]
-		// 	continue
-		// }
-		// if slicesEqual(actualData, ecu3RequestData00) { buffer = buffer[4:]; continue }
-		// if slicesEqual(actualData, ecu3RequestData01) { buffer = buffer[4:]; continue }
-		// if slicesEqual(actualData, ecu3RequestData02) { buffer = buffer[4:]; continue }
-		// if slicesEqual(actualData, ecu3RequestData03) { buffer = buffer[4:]; continue }
-		// if slicesEqual(actualData, ecu3RequestData05) { buffer = buffer[4:]; continue }
-		// if slicesEqual(actualData, ecu3RequestData06) { buffer = buffer[4:]; continue }
-		// if slicesEqual(actualData, ecu3RequestData07) { buffer = buffer[4:]; continue }
-		// if slicesEqual(actualData, ecu3RequestData08) { buffer = buffer[4:]; continue }
-		// if slicesEqual(actualData, ecu3RequestData09) { buffer = buffer[4:]; continue }
-		// if slicesEqual(actualData, ecu3RequestData0A) { buffer = buffer[4:]; continue }
-		// if slicesEqual(actualData, ecu3RequestData0B) { buffer = buffer[4:]; continue }
-		// if slicesEqual(actualData, ecu3RequestData0C) { buffer = buffer[4:]; continue }
-		// if slicesEqual(actualData, ecu3RequestData0D) { buffer = buffer[4:]; continue }
-		// if slicesEqual(actualData, ecu3RequestData0F) { buffer = buffer[4:]; continue }
-		// if slicesEqual(actualData, ecu3RequestData10) { buffer = buffer[4:]; continue }
-		// if slicesEqual(actualData, ecu3RequestData11) { buffer = buffer[4:]; continue }
-		// if slicesEqual(actualData, ecu3RequestData12) { buffer = buffer[4:]; continue }
-		// if slicesEqual(actualData, ecu3RequestData13) { buffer = buffer[4:]; continue }
-		// if slicesEqual(actualData, ecu3RequestData21) { buffer = buffer[4:]; continue }
-		// if slicesEqual(actualData, ecu3RequestData25) { buffer = buffer[4:]; continue }
-		// if slicesEqual(actualData, ecu3RequestData3A) { buffer = buffer[4:]; continue }
 
 		//
 		// actual responses
@@ -339,15 +307,15 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 			ecu3SendNextCommand(sp, ecu3PongResponse)
 			continue
 		}
-		// if slicesEqual(actualData, ecu3FaultsClearedResponse) {
-		// 	fmt.Println("< FAULT CLEARED")
-		// 	globalAlert = "ECU reports faults cleared"
-		// 	buffer = nil
-		// 	time.Sleep(50 * time.Millisecond)
-		// 	ecu3SendNextCommand(sp, ecu3FaultsClearedResponse)
-		// 	continue
-		// }
-		//
+		if slicesEqual(actualData, ecu3FaultsClearedResponse) {
+			fmt.Println("< FAULT CLEARED")
+			globalAlert = "ECU reports faults cleared"
+			buffer = nil
+			time.Sleep(50 * time.Millisecond)
+			ecu3SendNextCommand(sp, ecu3FaultsClearedResponse)
+			continue
+		}
+
 		if slicesEqual(actualData[0:len(ecu3ResponseFaults)], ecu3ResponseFaults) {
 			fmt.Println("< Faults")
 			ecu3ParseFaults(actualData)
@@ -356,102 +324,43 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 			ecu3SendNextCommand(sp, ecu3ResponseFaults)
 			continue
 		}
-		//
-		//
-		// if slicesEqual(actualData[0:2], ecu3ResponseData00) {
-		// 	fmt.Println("got data packet 00")
-		// 	// don't care?
-		// 	buffer = nil
-		// 	time.Sleep(50 * time.Millisecond)
-		// 	ecu3SendNextCommand(sp, ecu3ResponseData00)
-		// 	continue
-		// }
-		// if slicesEqual(actualData[0:2], ecu3ResponseData01) {
-		// 	fmt.Println("got data packet 01")
-		// 	coolant := int(actualData[2]) << 8
-		// 	coolant += int(actualData[3])
-		// 	coolantFloat := float32(coolant) - 2732
-		// 	coolantFloat /= 10
-		// 	globalDataOutput["coolant_temp"] = coolantFloat
-		// 	buffer = nil
-		// 	time.Sleep(50 * time.Millisecond)
-		// 	ecu3SendNextCommand(sp, ecu3ResponseData01)
-		// 	continue
-		// }
-		// if slicesEqual(actualData[0:2], ecu3ResponseData02) {
-		// 	fmt.Println("got data packet 02")
-		// 	oiltemp := int(actualData[2]) << 8
-		// 	oiltemp += int(actualData[3])
-		// 	oiltempFloat := float32(oiltemp) - 2732
-		// 	oiltempFloat /= 10
-		// 	globalDataOutput["oil_temp"] = oiltempFloat
-		// 	buffer = nil
-		// 	time.Sleep(50 * time.Millisecond)
-		// 	ecu3SendNextCommand(sp, ecu3ResponseData02)
-		// 	continue
-		// }
-		// if slicesEqual(actualData[0:2], ecu3ResponseData03) {
-		// 	fmt.Println("got data packet 03")
-		// 	iat := int(actualData[2]) << 8
-		// 	iat += int(actualData[3])
-		// 	iatFloat := float32(iat) - 2732
-		// 	iatFloat /= 10
-		// 	globalDataOutput["intake_air_temp"] = iatFloat
-		// 	buffer = nil
-		// 	time.Sleep(50 * time.Millisecond)
-		// 	ecu3SendNextCommand(sp, ecu3ResponseData03)
-		// 	continue
-		// }
-		// if slicesEqual(actualData[0:2], ecu3ResponseData05) {
-		// 	fmt.Println("got data packet 05")
-		// 	fueltemp := int(actualData[2]) << 8
-		// 	fueltemp += int(actualData[3])
-		// 	globalDataOutput["fuel_temp"] = float32(fueltemp)
-		// 	buffer = nil
-		// 	time.Sleep(50 * time.Millisecond)
-		// 	ecu3SendNextCommand(sp, ecu3ResponseData05)
-		// 	continue
-		// }
-		// if slicesEqual(actualData[0:2], ecu3ResponseData06) {
-		// 	fmt.Println("got data packet 06")
-		// 	// don't care?
-		// 	buffer = nil
-		// 	time.Sleep(50 * time.Millisecond)
-		// 	ecu3SendNextCommand(sp, ecu3ResponseData06)
-		// 	continue
-		// }
-		// if slicesEqual(actualData[0:2], ecu3ResponseData07) {
-		// 	fmt.Println("got data packet 07")
-		// 	mapkpa := int(actualData[2]) << 8
-		// 	mapkpa += int(actualData[3])
-		// 	globalDataOutput["map_sensor_kpa"] = float32(mapkpa)
-		// 	buffer = nil
-		// 	time.Sleep(50 * time.Millisecond)
-		// 	ecu3SendNextCommand(sp, ecu3ResponseData07)
-		// 	continue
-		// }
-		// if slicesEqual(actualData[0:2], ecu3ResponseData08) {
-		// 	fmt.Println("got data packet 08")
-		// 	tps := int(actualData[2]) << 8
-		// 	tps += int(actualData[3])
-		// 	tpsFloat := float32(tps) / 100
-		// 	globalDataOutput["tps_degrees"] = tpsFloat
-		// 	buffer = nil
-		// 	time.Sleep(50 * time.Millisecond)
-		// 	ecu3SendNextCommand(sp, ecu3ResponseData08)
-		// 	continue
-		// }
-		// if slicesEqual(actualData[0:2], ecu3ResponseData09) {
-		// 	fmt.Println("got data packet 09")
-		// 	rpm := int(actualData[2]) << 8
-		// 	rpm += int(actualData[3])
-		// 	globalDataOutput["rpm"] = float32(rpm)
-		// 	buffer = nil
-		// 	time.Sleep(50 * time.Millisecond)
-		// 	ecu3SendNextCommand(sp, ecu3ResponseData09)
-		// 	continue
-		// }
-		// if slicesEqual(actualData[0:2], ecu3ResponseData0A) {
+
+		if slicesEqual(actualData[0:2], ecu3ResponseData00) {
+			fmt.Println("got data packet 00")
+			buffer = nil
+			time.Sleep(50 * time.Millisecond)
+			ecu3SendNextCommand(sp, ecu3ResponseData00)
+			continue
+		}
+		if slicesEqual(actualData[0:2], ecu3ResponseData06) {
+			fmt.Println("got data packet 06")
+			buffer = nil
+			time.Sleep(50 * time.Millisecond)
+			ecu3SendNextCommand(sp, ecu3ResponseData06)
+			continue
+		}
+		if slicesEqual(actualData[0:2], ecu3ResponseData0A) {
+			fmt.Println("got data packet 0A")
+			buffer = nil
+			time.Sleep(50 * time.Millisecond)
+			ecu3SendNextCommand(sp, ecu3ResponseData0A)
+			continue
+		}
+		if slicesEqual(actualData[0:2], ecu3ResponseData0B) {
+			fmt.Println("got data packet 0B")
+			buffer = nil
+			time.Sleep(50 * time.Millisecond)
+			ecu3SendNextCommand(sp, ecu3ResponseData0B)
+			continue
+		}
+		if slicesEqual(actualData[0:2], ecu3ResponseData21) {
+			fmt.Println("got data packet 21")
+			buffer = nil
+			time.Sleep(50 * time.Millisecond)
+			ecu3SendNextCommand(sp, ecu3ResponseData21)
+			continue
+		}
+						// if slicesEqual(actualData[0:2], ecu3ResponseData0A) {
 		// 	fmt.Println("got data packet 0A")
 		// 	feedback := int(actualData[2]) << 8
 		// 	feedback += int(actualData[3])
@@ -615,7 +524,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 }
 
 func ecu3ParseFaults(buffer []byte) {
-	fmt.Printf("ecu3ParseFaults got %d bytes \n%s", len(buffer), hex.Dump(buffer))
+	// fmt.Printf("ecu3ParseFaults got %d bytes \n%s", len(buffer), hex.Dump(buffer))
 
 	faults := []string {}
 
@@ -646,83 +555,6 @@ func ecu3ParseFaults(buffer []byte) {
       buffer = nil
     }
   }
-
-	//
-	//
-	// if len(buffer) >= 5 {
-	// 	if (buffer[4] & 0b01000000) > 0 {	faults = append(faults, "Outside air temp (low voltage)") }
-	//   if (buffer[4] & 0b00100000) > 0 { faults = append(faults, "Power supply (low voltage)") }
-	//   if (buffer[4] & 0b00010000) > 0 { faults = append(faults, "Engine oil temp (low voltage)") }
-	//   if (buffer[4] & 0b00000100) > 0 { faults = append(faults, "Coolant temp (low voltage)") }
-	//   if (buffer[4] & 0b00000001) > 0 { faults = append(faults, "System (low voltage)") }
-	// }
-	//
-	//
-	// if len(buffer) >= 6 {
-	//   if (buffer[5] & 0b10000000) > 0 { faults = append(faults, "Battery (low voltage)") }
-	//   if (buffer[5] & 0b00010000) > 0 { faults = append(faults, "Lambda 1 bank 1 (low voltage)") }
-	//   if (buffer[5] & 0b00000100) > 0 { faults = append(faults, "Throttle pot (low voltage)") }
-	//   if (buffer[5] & 0b00000010) > 0 { faults = append(faults, "Air intake (low voltage)") }
-	//   if (buffer[5] & 0b00000001) > 0 { faults = append(faults, "MAP sensor (low voltage)") }
-	// }
-	//
-	// if len(buffer) >= 9 {
-	//   if (buffer[8] & 0b01000000) > 0 { faults = append(faults, "Outside air temp (high voltage)") }
-	//   if (buffer[8] & 0b00100000) > 0 { faults = append(faults, "Power supply (high voltage)") }
-	//   if (buffer[8] & 0b00010000) > 0 { faults = append(faults, "Oil temperature (high voltage)") }
-	//   if (buffer[8] & 0b00000100) > 0 { faults = append(faults, "Coolant temperature (high voltage)") }
-	//   if (buffer[8] & 0b00000001) > 0 { faults = append(faults, "System (high voltage)") }
-	// }
-	//
-	// if len(buffer) >= 10 {
-	//   if (buffer[9] & 0b10000000) > 0 { faults = append(faults, "Battery (high voltage)") }
-	//   if (buffer[9] & 0b10000) > 0 { faults = append(faults, "Lambda 1 bank 1 (high voltage)") }
-	//   if (buffer[9] & 0b100) > 0 { faults = append(faults, "Throttle pot (high voltage)") }
-	//   if (buffer[9] & 0b10) > 0 { faults = append(faults, "Intake air temp (high voltage)") }
-	//   if (buffer[9] & 0b1) > 0 { faults = append(faults, "MAP sensor (high voltage)") }
-	// }
-	//
-	// if len(buffer) >= 13 {
-	//   if (buffer[12] & 0b1000000) > 0 { faults = append(faults, "Outside temp sensor (present)") }
-	//   if (buffer[12] & 0b100000) > 0 { faults = append(faults, "Power supply (present)") }
-	//   if (buffer[12] & 0b10000) > 0 { faults = append(faults, "Oil temp (present)") }
-	//   if (buffer[12] & 0b100) > 0 { faults = append(faults, "Coolant temp (present)") }
-	//   if (buffer[12] & 0b100) > 0 { faults = append(faults, "System voltage (present)") }
-	// }
-	//
-	// if len(buffer) >= 14 {
-	//   if (buffer[13] & 0b10000000) > 0 { faults = append(faults, "Battery voltage (present)") }
-	//   if (buffer[13] & 0b10000) > 0 { faults = append(faults, "Lambda 1 bank 1 (present)") }
-	//   if (buffer[13] & 0b100) > 0 { faults = append(faults, "Throttle pot (present)") }
-	//   if (buffer[13] & 0b10) > 0 { faults = append(faults, "Intake air temp (present)") }
-	//   if (buffer[13] & 0b1) > 0 { faults = append(faults, "MAP sensor (present)") }
-	// }
-	//
-	// if len(buffer) >= 24 {
-	//   if (buffer[23] & 0b1000) > 0 { faults = append(faults, "MAP sensor (present 2)") }
-	//   if (buffer[23] & 0b100) > 0 { faults = append(faults, "Oil temp (present 2)") }
-	//   if (buffer[23] & 0b10) > 0 { faults = append(faults, "Intake air temp (present 2)") }
-	//   if (buffer[23] & 0b1) > 0 { faults = append(faults, "Coolant temp (present 2)") }
-	// }
-	//
-	// if len(buffer) >= 26 {
-	//   if (buffer[25] & 0b1000) > 0 { faults = append(faults, "MAP sensor (historic)") }
-	//   if (buffer[25] & 0b100) > 0 { faults = append(faults, "Oil temp (historic)") }
-	//   if (buffer[25] & 0b10) > 0 { faults = append(faults, "Intake air temp (historic)") }
-	//   if (buffer[25] & 0b1) > 0 { faults = append(faults, "Coolant temp (historic)") }
-	// }
-	//
-	// if len(buffer) >= 27 {
-	//   if (buffer[26] & 0b00000001) > 0 { faults = append(faults, "Road speed sensor (present)") }
-	//   if (buffer[26] & 0b00000010) > 0 { faults = append(faults, "Comm. with AT (present)") }
-	//   if (buffer[26] & 0b00010000) > 0 { faults = append(faults, "Feedback (present)") }
-	// }
-	//
-	// if len(buffer) >= 28 {
-	//   if (buffer[27] & 0b00000001) > 0 { faults = append(faults, "Road speed sensor (historic)") }
-	//   if (buffer[27] & 0b00000010) > 0 { faults = append(faults, "Comm. with AT (historic)") }
-	//   if (buffer[27] & 0b00010000) > 0 { faults = append(faults, "Feedback (historic)") }
-	// }
 
 	globalFaults = faults
 }
