@@ -12,11 +12,16 @@ import (
 	"net/http"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/cors"
+
+	"github.com/mattn/go-colorable" // fix text output in windows, maybe change if linux/mac in future
 )
 
 
 func runWebserver() {
 	gin.SetMode(gin.ReleaseMode)
+	gin.DefaultWriter = colorable.NewColorableStdout()
+	gin.ForceConsoleColor()
+
 	router := gin.Default()
 	router.Use(cors.Default()) // allow all origins
 
