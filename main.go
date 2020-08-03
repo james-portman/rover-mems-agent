@@ -23,11 +23,13 @@ var (
 	globalAlert = ""
 
 	globalDataOutput = map[string] float32{}
+
+	globalAgentVersion = "0.3.0"
 )
 
 func main() {
 
-	fmt.Println("Rover MEMS Diagnostic Agent version 0.0.0")
+	fmt.Println("Rover MEMS Diagnostic Agent version "+globalAgentVersion)
 	fmt.Println("https://rovermems.com/web-app/")
 
 	go runWebserver()

@@ -28,6 +28,7 @@ func runWebserver() {
       "userCommand": globalUserCommand,
 			"alert": globalAlert,
 			"ecuData": globalDataOutput,
+			"agentVersion": globalAgentVersion,
     })
 		if globalAlert != "" {
 			globalAlert = ""
