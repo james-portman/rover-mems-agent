@@ -24,7 +24,7 @@ var (
 
 	globalDataOutput = map[string] float32{}
 
-	globalAgentVersion = "0.3.0"
+	globalAgentVersion = "0.3.1"
 )
 
 func main() {
