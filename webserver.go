@@ -5,6 +5,7 @@ import (
 	// "encoding/hex"
 	// "fmt"
 	// "log"
+	"io/ioutil"
 	// "time"
 	// "errors"
 
@@ -13,14 +14,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/cors"
 
-	"github.com/mattn/go-colorable" // fix text output in windows, maybe change if linux/mac in future
+	// "github.com/mattn/go-colorable" // fix text output in windows, maybe change if linux/mac in future
 )
 
 
 func runWebserver() {
 	gin.SetMode(gin.ReleaseMode)
-	gin.DefaultWriter = colorable.NewColorableStdout()
-	gin.ForceConsoleColor()
+	gin.DefaultWriter = ioutil.Discard // to disable output
+	// gin.DefaultWriter = colorable.NewColorableStdout()
+	// gin.ForceConsoleColor()
 
 	router := gin.Default()
 	router.Use(cors.Default()) // allow all origins
