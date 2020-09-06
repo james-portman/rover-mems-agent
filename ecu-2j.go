@@ -462,7 +462,7 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 			fmt.Println("got data packet 07")
 			mapkpa := int(actualData[2]) << 8
 			mapkpa += int(actualData[3])
-			globalDataOutput["map_sensor_kpa"] = float32(mapkpa)
+			globalDataOutput["map_sensor_kpa"] = float32(mapkpa)/100
 			buffer = nil
 			time.Sleep(50 * time.Millisecond)
 			twojSendNextCommand(sp, twojResponseData07)
