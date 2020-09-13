@@ -24,6 +24,8 @@ var (
 	ecu1xStopTestFan1 = byte(0x0D)
 	ecu1xStartTestPurgeValve = byte(0x18)
 	ecu1xStopTestPurgeValve = byte(0x08)
+	ecu1xIncreaseIdleSpeed = byte(0x91)
+	ecu1xDecreaseIdleSpeed = byte(0x92)
 
 	ecu1xUserCommands = map[string] byte{
 		"clearfaults": ecu1xRequestClearFaults,
@@ -38,6 +40,8 @@ var (
 		"stopTestFan1": ecu1xStopTestFan1,
 		"startTestPurgeValve": ecu1xStartTestPurgeValve,
 		"stopTestPurgeValve": ecu1xStopTestPurgeValve,
+		"increaseIdleSpeed": ecu1xIncreaseIdleSpeed,
+		"decreaseIdleSpeed": ecu1xDecreaseIdleSpeed,
 	}
 )
 
@@ -63,7 +67,7 @@ func ecu1xNextCommand(previousResponse byte) byte {
 		case 0x7D: return 0x80; break
 	}
 
-	return 0x80 // if we aren't sure
+	return 0x80; // if we aren't sure
 }
 
 func ecu1xSend(sp sers.SerialPort, data byte) {
@@ -110,8 +114,8 @@ func ecu1xLoop(sp sers.SerialPort, kline bool) ([]byte, error) {
 
     if len(buffer) == 0 { continue }
 
-		// check through the user commands (if we got 00 back as well)
-		if len(buffer) >= 2 && buffer[1] == 0x00 {
+		// check through the user commands (if we got another byte back as well)
+		if len(buffer) >= 2 {
 			for key := range ecu1xUserCommands {
 				if buffer[0] == ecu1xUserCommands[key] {
 
