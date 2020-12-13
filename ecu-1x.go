@@ -58,16 +58,21 @@ func ecu1xNextCommand(previousResponse byte) byte {
 	}
 
 	switch previousResponse {
+		// go back to data 80 after clearing faults
 		case ecu1xRequestClearFaults: return 0x80; break
+
+		// init sequence then data 80
 		case 0xCA: return 0x75; break
 		case 0x75: return 0xF4; break
 		case 0xF4: return 0xD0; break
 		case 0xD0: return 0x80; break
+
+		// toggle between data packets (1.2 ECU can only do 80 I think?)
 		case 0x80: return 0x7D; break
 		case 0x7D: return 0x80; break
 	}
 
-	return 0x80; // if we aren't sure
+	return 0x80; // data 80 if we aren't sure
 }
 
 func ecu1xSend(sp sers.SerialPort, data byte) {
