@@ -3,16 +3,10 @@ package main
 // useful: https://github.com/bugst/go-serial/blob/master/serial_windows.go
 
 import (
-	// "encoding/binary"
-	// "encoding/hex"
 	"fmt"
-	// "log"
 	"time"
 	"errors"
-
-	// "github.com/distributed/sers"
-	// "net/http"
-	// "github.com/gin-gonic/gin"
+	"os/exec"
 )
 
 var (
@@ -25,15 +19,18 @@ var (
 	globalDataOutput = map[string] float32{}
 	globalDataOutputLock = sync.RWMutex{}
 
-	globalAgentVersion = "0.4.0"
+	globalAgentVersion = "1.0.0-RC"
 )
 
 func main() {
 
 	fmt.Println("Rover MEMS Diagnostic Agent version "+globalAgentVersion)
-	fmt.Println("https://rovermems.com/web-app/")
+	fmt.Println("Going to run on http://localhost:8080/")
+	fmt.Println("It should automatically open a browser for you")
 
 	go runWebserver()
+	_ = exec.Command("rundll32", "url.dll,FileProtocolHandler", "http://localhost:8080").Start()
+
 	for true {
 		err := connectLoop();
 		if err != nil {

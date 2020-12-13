@@ -1,33 +1,25 @@
 package main
 
 import (
-	// "encoding/binary"
-	// "encoding/hex"
-	// "fmt"
-	// "log"
 	"io/ioutil"
-	// "time"
-	// "errors"
-
-	// "github.com/distributed/sers"
 	"net/http"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/cors"
-
-	// "github.com/mattn/go-colorable" // fix text output in windows, maybe change if linux/mac in future
+	"github.com/gin-contrib/static"
 )
-
 
 func runWebserver() {
 	gin.SetMode(gin.ReleaseMode)
-	gin.DefaultWriter = ioutil.Discard // to disable output
+	gin.DefaultWriter = ioutil.Discard // to disable web hits output to console
 	// gin.DefaultWriter = colorable.NewColorableStdout()
 	// gin.ForceConsoleColor()
 
 	router := gin.Default()
 	router.Use(cors.Default()) // allow all origins
 
-  router.GET("/", func(c *gin.Context) {
+	router.Use(static.Serve("/", static.LocalFile("web-static", false)))
+
+  router.GET("/api", func(c *gin.Context) {
 		globalDataOutputLock.RLock()
     c.JSON(200, gin.H{
       "faults": globalFaults,
@@ -76,4 +68,5 @@ func runWebserver() {
   })
 
 	router.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+
 }
