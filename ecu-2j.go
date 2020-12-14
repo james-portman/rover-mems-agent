@@ -563,10 +563,10 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 			// 0 means OK, 1 bad
 			// will swap for our purposes
 			// output is 1 for yes
-			camSync := actualData[2] & 1 // 0b00000001
-			globalDataOutput["cam_sync"] = float32(1 - camSync)
-			crankSync := (actualData[2] >> 1) & 1 //0b00000010
-			globalDataOutput["crank_sync"] = float32(1 - crankSync)
+			primaryTriggerSync := actualData[2] & 1 // 0b00000001
+			globalDataOutput["primary_trigger_sync"] = float32(1 - primaryTriggerSync)
+			secondaryTriggerSync := (actualData[2] >> 1) & 1 //0b00000010
+			globalDataOutput["secondary_trigger_sync"] = float32(1 - secondaryTriggerSync)
 
 			buffer = nil
 			time.Sleep(50 * time.Millisecond)

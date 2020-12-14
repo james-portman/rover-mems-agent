@@ -370,7 +370,7 @@ func ecu1xParseData7D(data []byte) {
 
   dtc_byte := int(data[5])
   globalDataOutput["lambda_heater_relay"] = float32((dtc_byte >> 3) & 1)
-  globalDataOutput["crank_shaft_sync"] = float32((dtc_byte >> 4) & 1)
+  globalDataOutput["secondary_trigger_sync"] = float32((dtc_byte >> 4) & 1)
   globalDataOutput["fan_1_control"] = float32((dtc_byte >> 5) & 1)
   globalDataOutput["fan_2_control"] = float32((dtc_byte >> 7) & 1)
 
@@ -393,7 +393,7 @@ func ecu1xParseData7D(data []byte) {
   globalDataOutput["carbon_can_purge_valve_duty_cycle"] = float32(data[13]) // "Carbon canister purge valve duty cycle?"
 
   dtc2 := int(data[0xE])
-  globalDataOutput["cam_shaft_sync"] = float32( (dtc2 >> 1) & 1 )
+  globalDataOutput["primary_trigger_sync"] = float32( (dtc2 >> 1) & 1 )
 
   if (packet_size >= 16) {
     globalDataOutput["idle_base_position"] = float32(data[15])
