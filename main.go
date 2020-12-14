@@ -23,6 +23,7 @@ var (
 	globalAlert = ""
 
 	globalDataOutput = map[string] float32{}
+	globalDataOutputLock = sync.RWMutex{}
 
 	globalAgentVersion = "0.4.0"
 )

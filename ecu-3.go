@@ -256,6 +256,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 
 		//
 		// actual responses
+		globalDataOutputLock.Lock()
 		//
 		if slicesEqual(actualData[0:2], ecu3InitAccepted) {
 			fmt.Println("< ECU woke up")
@@ -430,6 +431,8 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 		fmt.Printf("unknown command in buffer (burning it): got %d bytes \n%s", len(buffer), hex.Dump(buffer[0:totalLength]))
 		fmt.Printf("actualData %d bytes \n%s", len(actualData), hex.Dump(actualData))
 		buffer = buffer[totalLength:]
+
+		globalDataOutputLock.Unlock()
 
 	}
 	if readLoops >= readLoopsLimit {

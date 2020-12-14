@@ -28,6 +28,7 @@ func runWebserver() {
 	router.Use(cors.Default()) // allow all origins
 
   router.GET("/", func(c *gin.Context) {
+		globalDataOutputLock.RLock()
     c.JSON(200, gin.H{
       "faults": globalFaults,
       "connected": globalConnected,
@@ -37,6 +38,7 @@ func runWebserver() {
 			"ecuData": globalDataOutput,
 			"agentVersion": globalAgentVersion,
     })
+		globalDataOutputLock.RUnlock()
 		if globalAlert != "" {
 			globalAlert = ""
 		}
