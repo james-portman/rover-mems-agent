@@ -1,7 +1,5 @@
 @echo off
 del *.exe
-go build
+go build -ldflags="-s -w" -o rover-mems.exe
 if %errorlevel% neq 0 exit /b %errorlevel%
-*.exe
-
-REM go build -ldflags="-s -w"
+rover-mems.exe

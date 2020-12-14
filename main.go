@@ -7,6 +7,7 @@ import (
 	"time"
 	"errors"
 	"os/exec"
+	"sync"
 )
 
 var (
