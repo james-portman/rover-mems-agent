@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html>
+<head>
+<!-- Required meta tags -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!-- Bootstrap CSS -->
+<link rel="stylesheet" href="/bootstrap-4.5.0-min.css">
+<link href="../fontawesome.css" rel="stylesheet">
+<link rel="stylesheet" href="/custom.css">
+
+<title>Rover MEMS Diagnostic</title>
+
+<style>
+  pre {
+    border: 1px solid black;
+    max-height: 30rem;
+    overflow: hidden;
+  }
+  #outputs div {
+    border-bottom: 1px solid grey;
+    display: block;
+  }
+  #ecuConnected.disconnected {
+    color: red;
+  }
+  #ecuConnected.connected {
+    color: green;
+  }
+  #debugWrapper {
+    display: none;
+  }
+  .canvasWrapper {
+    margin-bottom: 1em;
+  }
+  .addChartButton {
+    cursor: pointer;
+  }
+  .deleteGraphButton {
+    cursor: pointer;
+  }
+  .outputLabel {
+    margin-right: 0.5em;
+    font-weight: 500;
+  }
+  .outputValue {
+
+  }
+
+  .fault {
+    display: inline-block;
+  }
+
+  #httpsWarning {
+    background: red;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+    right: 0;
+    bottom: 0;
+    font-size: 3em;
+    text-align: center;
+    color: white;
+    display: none;
+  }
+</style>
+
+</head>
+<body>
+
+<div class="fixed-top">
+
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-sm">
+    <a class="navbar-brand" href="/">Rover MEMS Diagnostic</a>
+    <div class="navbar-text">App version 1.0.0-RC</div>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    </div>
+    <div class="collapse navbar-collapse">
+    </div>
+  </div>
+  </nav>
+
+</div><!--end <div class="fixed-top"> -->
+
+<div id="httpsWarning">
+Please use https:// at the start of the address bar or this will not work.
+</div>
+<script type="text/javascript">
+if (location.protocol !== 'https:' && location.hostname != 'localhost') {
+// if (location.protocol !== 'https:') {
+    document.getElementById("httpsWarning").style.display = "block";
+}
+</script>
+
+<div class="container-sm">
+
+
+
+<div id="connectionSection">
+
+  <h3>ECU/Module type</h3>
+  <br/>
+  <div class="form-check-inline">
+    <label class="form-check-label">
+      <input class="form-check-input" type="radio" name="ecuVersion" value="1.2">
+      MEMS 1.2
+    </label>
+  </div>
+  <div class="form-check-inline">
+    <label class="form-check-label">
+      <input class="form-check-input" type="radio" name="ecuVersion" value="1.3-1.6" checked>
+      MEMS 1.3 and 1.6
+    </label>
+  </div>
+  <br/>
+  <br/>
+  <div class="form-check-inline">
+    <label class="form-check-label">
+      <input class="form-check-input" type="radio" name="ecuVersion" value="1.9">
+      MEMS 1.9
+    </label>
+  </div>
+  <div class="form-check-inline">
+    <label class="form-check-label">
+      <input class="form-check-input" type="radio" name="ecuVersion" value="2J">
+      MEMS 2J
+    </label>
+  </div>
+  <div class="form-check-inline">
+    <label class="form-check-label">
+      <input class="form-check-input" type="radio" name="ecuVersion" value="3">
+      MEMS 3
+    </label>
+  </div>
+  <br/>
+  <br/>
+  <div class="form-check-inline">
+    <label class="form-check-label">
+      <input class="form-check-input" type="radio" name="ecuVersion" value="rc5">
+      Airbag RC5
+    </label>
+  </div>
+  <br/>
+  <br/>
+  <div>
+    <input type="button" class="btn btn-warning" onclick="agentConnect()" value="Connect"><br/>
+  </div>
+
+
+
+  <br/>
+  <hr/>
+
+  <div>
+    <h3>More information</h3>
+    Check the main website in case new versions are released, or for more information:<br/>
+    <a target="_blank" href="https://rovermems.com">https://rovermems.com</a><br/>
+    <br/>
+    Visit the GitHub repository to see the code or report issues, feedback, or to request changes<br/>
+    <a target="_blank" href="https://github.com/james-portman/rover-mems-agent">https://github.com/james-portman/rover-mems-agent</a><br/>
+  </div>
+
+
+  <br/>
+  <hr/>
+
+  <div id="connectionHelp">
+    <h3>Connection problems?</h3>
+    I advise that you use an updated version of the Google Chrome browser and Windows 10 for this to have the best chance of working.<br/>
+    If your cable does not immediately work then you likely need to install the correct driver.<br/>
+    For all types of cables on a Windows based computer - open Device Manager, expand the "Ports" section and look for your cable there, the see the next step depending on your cable..<br/>
+    <br/>
+    <br/>
+    <strong>16-pin cables (OBDII style)</strong><br/>
+    The driver for these cables is not automatically installed by Windows, you can download it from here:<br/>
+    <a href="https://www.ftdichip.com/Drivers/CDM/CDM%20v2.12.28%20WHQL%20Certified.zip">https://www.ftdichip.com/Drivers/CDM/CDM%20v2.12.28%20WHQL%20Certified.zip</a>
+    Unzip it then run the installer file<br/>
+    <br/>
+    <br/>
+    <strong>3-pin cables</strong><br/>
+    Note: Check you are not plugged into a green connector in the engine bay which would be for the alarm/immobiliser, even though it is the same shape/style of plug! The ECU connector is white/cream coloured.<br/>
+    <br/>
+    If your 3-pin cable shows up in device manager with a message similar to "Phased out, contact supplier" then you need to install a special driver:
+    <a href="https://github.com/james-portman/rover-mems-pl2303-driver/releases/download/2/pl2303-win10-1.0.1.zip">https://github.com/james-portman/rover-mems-pl2303-driver/releases/download/2/pl2303-win10-1.0.1.zip</a><br/>
+    Download this, open it and then run install.bat to install it, it will try to remove any old drivers and install a working one only, read the messages as it installs.<br/>
+    If there is a problem installing the first time then reboot the computer and try once more.<br/>
+    <br/>
+    <br/>
+    <strong>Still stuck?</strong>
+    <a href="mailto:jmprovermems@gmail.com">email me!</a>
+  </div>
+
+
+
+
+</div><!-- end connection section -->
+
+
+<div id="hideBeforeConnection" style="display: none;">
+
+  <div class="">
+    <span id="ecuConnected"></span>
+    <span id="spinner">-</span>
+  </div>
+
+  <i class="fas fa-bug"></i> Debug: <input type="checkbox" id="debugEnabled" onchange="debugTicked(this);"><br/>
+
+  <div id="debugWrapper">
+  <h2><i class="fas fa-bug"></i> Debug</h2>
+  Debug all data: <input type="checkbox" id="debugDataEnabled"><br/>
+  Debug to console: <input type="checkbox" id="debugConsoleEnabled">
+  <pre id="debug">
+  Debug to follow when enabled...
+  </pre>
+  </div>
+
+
+  Selected MEMS ECU type: <span id="ecuChosen"></span><br/>
+  <div class="hideMems1xOnly" style="display: none;">
+    <span id="ecuId">ECU ID: Connect first</span><br/>
+    <span id="carInfo">Info: Connect first</span><br/>
+  </div>
+  <br/>
+  <hr/>
+
+
+
+  <div id="commands_alert_placeholder"></div>
+  <i class="fas fa-info-circle" data-trigger="hover" data-toggle="popover" title="Note" data-content="Note: some commands may not work on your car depending on specification e.g. you might not have air con, some RPM gauges are wired into coil packs rather than ECU (RPM gauge test won't work), etc"></i><br/>
+
+
+
+  <div class="hideMems1xOnly" style="display: none;">
+    <h2><i class="fas fa-tools"></i> Commands/tests (MEMS 1.x)</h2>
+
+    <div class="btn-group">
+      <a class="btn btn-warning" onclick="userActionClearFaults = true; return false;">Clear fault codes</a>
+    </div>
+    <div class="btn-group">
+      <a class="btn btn-warning" onclick="userActionStartTestRpmGauge = true; return false;">Test RPM gauge</a>
+    </div>
+    <div class="btn-group">
+      <a class="btn btn-warning" onclick="userActionStartTestLambdaHeater = true; return false;">Start lambda sensor heater</a>
+      <a class="btn btn-warning" onclick="userActionStopTestLambdaHeater = true; return false;">Stop lambda sensor heater</a>
+    </div>
+    <div class="btn-group">
+      <a class="btn btn-warning" onclick="userActionStartTestACClutch = true; return false;">Start air con clutch</a>
+      <a class="btn btn-warning" onclick="userActionStopTestACClutch = true; return false;">Stop air con clutch</a>
+    </div>
+    <div class="btn-group">
+      <a class="btn btn-warning" onclick="userActionStartTestFuelPump = true; return false;">Start fuel pump</a>
+      <a class="btn btn-warning" onclick="userActionStopTestFuelPump = true; return false;">Stop fuel pump</a>
+    </div>
+    <div class="btn-group">
+      <a class="btn btn-warning" onclick="userActionStartTestFan1 = true; return false;">Start fan 1</a>
+      <a class="btn btn-warning" onclick="userActionStopTestFan1 = true; return false;">Stop fan 1</a>
+    </div>
+    <div class="btn-group">
+      <a class="btn btn-warning" onclick="userActionStartTestPurgeValve = true; return false;">Start purge valve</a>
+      <a class="btn btn-warning" onclick="userActionStopTestPurgeValve = true; return false;">Stop purge valve</a>
+    </div>
+    <div class="btn-group">
+      <a class="btn btn-warning" onclick="userActionIncreaseIdleSpeed = true; return false;">Increase idle speed</a>
+      <a class="btn btn-warning" onclick="userActionDecreaseIdleSpeed = true; return false;">Decrease idle speed</a>
+    </div>
+
+<!--
+unknown ['0xe8', '0xe8', '0x6', '0xeb', '0x9', '0x41', '0x5', '0x1']
+happens after fault code clear
+
+fan 2:
+unknown ['0x1e', '0x1e', '0x0']
+off:
+unknown ['0xe', '0xe', '0x0']
+
+engine bay fan:
+unknown ['0x6f', '0x6f']
+off:
+0x67', '0x67'
+
+engine bay temp warning light:
+unknown ['0x30', '0x30']
+off:
+unknown ['0x20', '0x20']
+
+cruise control disable relay:
+unknown ['0x31', '0x31']
+off:
+unknown ['0x21', '0x21']
+
+wastegate:
+'0xb', '0xb'
+off:
+unknown ['0x1b', '0x1b']
+
+fire injector 1:
+unknown ['0xda', '0xda', '0x1']
+fire injector 2:
+unknown ['0xdb', '0xdb', '0x1']
+
+test idle valve:
+unknown ['0xfb', '0xfb', '0x4d', '0xfd', '0xfd', '0x4d']
+requests current position then opens it by one step?
+maybe doesn't open the first time you ask?
+stop:
+'0xff', '0xff', '0x4d'
+requesting position again, maybe puts it back if wrong?
+
+
+
+adjustments:
+"ignition timing"
+it just does this:
+unknown ['0x7f', '0x7f', '0x5', '0x81', '0x81', '0x0']
+
+"idle adjustment"
+just does this:
+unknown ['0x7e', '0x7e', '0x8', '0x81', '0x81', '0x0']
+
+"clear adaptations"
+unknown ['0xfa', '0xfa', '0x0', '0x81', '0x81', '0x0']
+-->
+    <br/>
+    <br/>
+    <hr/>
+  </div>
+
+
+
+  <div class="hideMems2jOnly" style="display: none;">
+    <h2><i class="fas fa-tools"></i> Commands (MEMS 2J)</h2>
+    <div class="btn-group">
+      <a class="btn btn-warning" onclick="userActionClearFaults = true; return false;">Clear fault codes</a><br/>
+    </div>
+    <!-- <div class="btn-group">
+      <a class="btn btn-warning" onclick="userActionStartTestFuelPump = true; return false;">Start fuel pump</a>
+      <a class="btn btn-warning" onclick="userActionStopTestFuelPump = true; return false;">Stop fuel pump</a>
+    </div>
+
+    <div class="btn-group">
+      <a class="btn btn-warning" onclick="userActionStartTestRpmGauge = true; return false;">Test RPM gauge</a>
+      <a class="btn btn-warning" onclick="userActionStopTestRpmGauge = true; return false;">Stop test RPM gauge</a>
+    </div>
+
+    <div class="btn-group">
+      <a class="btn btn-warning" onclick="userActionStartTestFan1 = true; return false;">Start fan 1</a>
+      <a class="btn btn-warning" onclick="userActionStopTestFan1 = true; return false;">Stop fan 1</a>
+    </div>
+
+    <div class="btn-group">
+      <a class="btn btn-warning" onclick="userActionStartTestPurgeValve = true; return false;">Open purge valve (5 seconds)</a>
+    </div>
+
+    <div class="btn-group">
+      <a class="btn btn-warning" onclick="userActionStartTestACClutch = true; return false;">Start air con clutch</a>
+      <a class="btn btn-warning" onclick="userActionStopTestACClutch = true; return false;">Stop air con clutch</a>
+    </div>
+
+    <div class="btn-group">
+      <a class="btn btn-warning" onclick="userActionStartTestACFan = true; return false;">Start air con fan</a>
+      <a class="btn btn-warning" onclick="userActionStopTestACFan = true; return false;">Stop air con fan</a>
+    </div>
+
+    <div class="btn-group">
+      <a class="btn btn-warning" onclick="userActionStartTestLambdaHeater = true; return false;">Start lambda sensor heater</a>
+      <a class="btn btn-warning" onclick="userActionStopTestLambdaHeater = true; return false;">Stop lambda sensor heater</a>
+    </div>
+
+    <div class="btn-group">
+      <a class="btn btn-warning" onclick="userActionStartTestLambda2Heater = true; return false;">Start lambda sensor 2 heater</a>
+      <a class="btn btn-warning" onclick="userActionStopTestLambda2Heater = true; return false;">Stop lambda sensor 2 heater</a>
+    </div> -->
+
+    <br/>
+    <br/>
+    <hr/>
+  </div>
+
+
+
+  <div class="hideMems3Only" style="display: none;">
+    <h2><i class="fas fa-tools"></i> Commands (MEMS3)</h2>
+    <a class="btn btn-warning" onclick="userActionClearFaults = true; return false;">Clear fault codes</a><br/>
+    <br/>
+    <a class="btn btn-warning" onclick="eepromReadMode = true; this.classList.remove('btn-warning'); this.classList.add('btn-secondary'); return false;">Dump EEPROM</a>
+
+
+<!--
+
+    get fault codes:
+    ?  ['0x4', '0x18', '0x0', '0x0', '0x0', '0x1c']
+    ?  ['0x4a', '0x58', '0x18', '0x12', '0x32', '0x74', '0x6', '0x50', '0x20', '0x4', '0x81', '0x20', '0x15', '0x8', '0x64', '0x15', '0x8', '0x64', '0x11', '0x86', '0x30', '0x11', '0x85', '0x30', '0x11', '0x92', '0x30', '0x4', '0x45', '0x30', '0x4', '0x80', '0x20', '0x16', '0x10', '0x64', '0x1', '0x13', '0x61', '0x1', '0x18', '0x61', '0x1', '0x22', '0x62', '0x5', '0x62', '0x20', '0x1', '0x97', '0x71', '0x4', '0x62', '0x62', '0x3', '0x40', '0x30', '0x1', '0x6', '0x58', '0x13', '0x16', '0x30', '0x1', '0x70', '0x30', '0x6', '0x55', '0x20', '0x6', '0x55', '0x64', '0x14', '0x87', '0x61', '0x64']
+
+
+    clear faults:
+    ?  ['0x3', '0x14', '0x0', '0x0', '0x17']
+    ?  ['0x3', '0x54', '0x0', '0x0', '0x57']
+
+
+
+    real data:
+    coolant temp 20.2 deg c
+    coolant temp (input signal) -39.8
+    iat -273
+    iat (input signal) -39.8
+    oil temp 20.2
+    oil temp (input signal) -39.8
+
+    ?  ['0x2', '0x21', '0x0', '0x23']
+    ?  ['0x10', '0x61', '0x0', '0xb', '0x74', '0x9', '0x1c', '0xb', '0x74', '0x9', '0x1c', '0x0', '0x0', '0x9', '0x1c', '0x10', '0x24', '0x12']
+
+
+    data 2:
+    rpm: 0
+    map kpa: 2.8
+    map kpa (input signal) 2.8
+    trottle pot 0.00v
+    ?  ['0x2', '0x21', '0x6', '0x29']
+    ?  ['0xc', '0x61', '0x6', '0x1', '0x1b', '0x1', '0x19', '0xfa', '0xf4', '0x0', '0x5', '0x0', '0x0', '0x9c']
+
+
+    data 3:
+    rpm deviation actual/target value 0rpm
+    ?  ['0x2', '0x21', '0x21', '0x44']
+    ?  ['0x4', '0x61', '0x21', '0x0', '0x0', '0x86']
+
+    data 4:
+    regulation air/fuel mix (percent) 100.0%
+    front lambda V 0.470 approx (first 2 bytes - can see it changing)
+    upstream lambda (input signal) 0.48v
+    rear lambda 0.474v
+    downstream lambda (input signal) 0.48v
+    ?  ['0x2', '0x21', '0xa', '0x2d']
+    ?  ['0x10', '0x61', '0xa', '0x27', '0x10', '0x1', '0xda', '0x1', '0xe3', '0x27', '0x10', '0x1', '0xda', '0x1', '0xe3', '0x0', '0x0', '0x67']
+
+
+    data 5:
+    ign coil 1: 10300 uS
+    ign coil 2: 10300 uS
+    ?  ['0x2', '0x21', '0xb', '0x2e']
+    ?  ['0xf', '0x61', '0xb', '0x28', '0x3c', '0x28', '0x3c', '0x1c', '0x4', '0x14', '0xfc', '0x6', '0xec', '0xd', '0xf4', '0xf', '0x75']
+
+    data 6:
+    inj 1 -20.666 ms
+    inj 2 "
+    inj 3 "
+    inj 4 "
+    dead time: 2.270 ms
+    ?  ['0x2', '0x21', '0xc', '0x2f']
+    ?  ['0x16', '0x61', '0xc', '0x7', '0x8', '0x0', '0x0', '0xaf', '0x46', '0x0', '0x0', '0xaf', '0x46', '0x0', '0x0', '0xaf', '0x46', '0x0', '0x0', '0xaf', '0x46', '0x8', '0xde', '0x4c']
+
+    data 7:
+    kmh road speed 0 (surely the autocom is translating that from mph?)
+    ?  ['0x2', '0x21', '0xd', '0x30']
+    ?  ['0x3', '0x61', '0xd', '0x0', '0x71']
+
+    data 8:
+    security code: low?
+    AC requested: yes
+    ignition state: on
+    throttle: open
+    cooling fan low speed (if available): requested
+    ?  ['0x2', '0x21', '0xf', '0x32']
+    ?  ['0x3', '0x61', '0xf', '0x8f', '0x2']
+
+    data 9:
+    battery voltage: 0.8v (wtf)
+    battery voltage (input signal) 1v
+    ?  ['0x2', '0x21', '0x10', '0x33']
+    ?  ['0x6', '0x61', '0x10', '0x3', '0x26', '0x3', '0x20', '0xc3']
+
+    data 10:
+    crankshaft syn: no
+    crankshaft position: -60 deg
+    sync lost: fault
+    camshaft sync: no
+    ?  ['0x2', '0x21', '0x11', '0x34']
+    ?  ['0x7', '0x61', '0x11', '0x7', '0x0', '0x0', '0xfd', '0xa8', '0x25']
+
+
+    data 11:
+    IAC position: 153
+    ?  ['0x2', '0x21', '0x12', '0x35']
+    ?  ['0x4', '0x61', '0x12', '0x0', '0x99', '0x10']
+
+    data 12:
+    open loop? open
+    ?  ['0x2', '0x21', '0x13', '0x36']
+    ?  ['0x3', '0x61', '0x13', '0x0', '0x77']
+
+    data 13:
+    idle speed control: inactive
+    crank status: not cranking
+    start status: not starting
+    stop status: stopping
+    ?  ['0x2', '0x21', '0x14', '0x37']
+    ?  ['0x3', '0x61', '0x14', '0x24', '0x9c']
+
+    data 14:
+    fuel pump: off
+    lambda heater: off
+    AC: off
+    main relay: on
+    cooling fan: off
+    A/C condenser fan: off
+    engine bay fan: on
+    MIL (malfunction indicator lamp): on
+    ?  ['0x2', '0x21', '0x15', '0x38']
+    ?  ['0x4', '0x61', '0x15', '0x2', '0x5', '0x81']
+
+    data 15:
+    carbon can purge percent: 0.00%
+    ?  ['0x2', '0x21', '0x16', '0x39']
+    ?  ['0x4', '0x61', '0x16', '0x0', '0x0', '0x7b']
+
+    data 16:
+    ignition timing: 2.3 deg
+    ?  ['0x2', '0x21', '0x62', '0x85']
+    ?  ['0x4', '0x61', '0x62', '0x0', '0x17', '0xde']
+
+    data 17:
+    ign advance offset: 0 deg
+    idle speed offset: 0rpm
+    inj time offset: 0uS
+    ?  ['0x2', '0x21', '0x3a', '0x5d']
+    ?  ['0x8', '0x61', '0x3a', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0xa3']
+
+    data 18:
+    catalyst efficiency (if rear lambda fitted): not OK
+    ?  ['0x2', '0x21', '0x51', '0x74']
+    ?  ['0x19', '0x61', '0x51', '0x1', '0x4f', '0x9', '0x1c', '0x9', '0x1c', '0x9', '0x1c', '0x0', '0x99', '0x0', '0x0', '0x0', '0x0', '0xfa', '0xf4', '0x1', '0x19', '0x27', '0x10', '0x0', '0x0', '0x1', '0x63']
+
+    data 19:
+    missfires cyl 1: 0
+    2: 0
+    3: 0
+    4: 0
+    ?  ['0x2', '0x21', '0x52', '0x75']
+    ?  ['0x6', '0x61', '0x52', '0x0', '0x0', '0x0', '0x0', '0xb9']
+
+    data 20:
+    front lambda switching time: 0.00 ms
+    fuelling feedback: open loop
+    front lambda switching frequency: 0Hz
+    fuel mixture: lean
+    lambda status: not ready
+    rear lambda sensor: -0.80A ??
+    ?  ['0x2', '0x21', '0x55', '0x78']
+    ?  ['0x1b', '0x61', '0x55', '0x0', '0x0', '0x0', '0x0', '0x0', '0xe0', '0xae', '0xe0', '0xae', '0xef', '0x1d', '0xf5', '0x8f', '0xc9', '0x51', '0xed', '0x42', '0xd9', '0xbd', '0xfd', '0x27', '0xf8', '0x61', '0xd8', '0x80', '0x31']
+
+    data 21:
+    front lambda duty cycle: 0%
+    " pre heating: 0.000A
+    rear lambda duty cycle: 0%
+    " pre heating: 0.000A
+    ?  ['0x2', '0x21', '0x56', '0x79']
+    ?  ['0xa', '0x61', '0x56', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0xc1']
+
+    data 22:
+    cat result (cars with 2 lambdas): 0.0
+    cat limit ("): 0
+    cat test ("): not ready
+    ?  ['0x2', '0x21', '0x57', '0x7a']
+    ?  ['0x9', '0x61', '0x57', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0xc1']
+
+    data 23:
+    rough road: 0%
+    rough road 1: 0%
+    rough road 2: 0%
+    misfire state: not OK
+    torque status: negative
+    sensor status: faults
+    misfire causing cat damage: 0%
+    misfire causing excess emissions: 0%
+    operating conditions: 0
+    ?  ['0x2', '0x21', '0x5a', '0x7d']
+    ?  ['0x15', '0x61', '0x5a', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x2c', '0x0', '0x0', '0x0', '0x0', '0xfc']
+
+    data 24:
+    high engine load?: yes
+    operation conditions, threshold: 0
+    fault detection: fault present
+    ?  ['0x2', '0x21', '0x5a', '0x7d']
+    ?  ['0x15', '0x61', '0x5a', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x2c', '0x0', '0x0', '0x0', '0x0', '0xfc']
+
+    data 25:
+    engine bay temperature: 1023 deg c
+    ?  ['0x2', '0x21', '0x5c', '0x7f']
+    ?  ['0x10', '0x61', '0x5c', '0x0', '0x1', '0x3', '0xff', '0x3', '0xff', '0x3', '0xff', '0x3', '0xff', '0x0', '0x1', '0x0', '0x0', '0xd7']
+
+    data 26:
+    engine bay temperature: 14000.0 deg c
+    target rpm: 0rpm
+    alternator load: 0%
+    idle step engine: 45 steps
+    lowest closed throttle voltage: 1v
+    idle state: not OK
+    idle request: not requested
+    vehicle status: stationary
+    ?  ['0x2', '0x21', '0x5d', '0x80']
+    ?  ['0x20', '0x61', '0x5d', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x2d', '0x2', '0xf1', '0x0', '0x50', '0x36', '0xb0', '0x0', '0x0', '0x10', '0x24', '0xb', '0x10', '0x27', '0x10', '0x0', '0x0', '0x0', '0x99', '0x6', '0x0', '0x36', '0xb0', '0x3f']
+
+    data 27:
+    idle speed control, not activated: allowed
+    idle stepmotor control: allowed
+    idling control, initiation: in progress
+    ?  ['0x2', '0x21', '0x5d', '0x80']
+    ?  ['0x20', '0x61', '0x5d', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x2d', '0x2', '0xf1', '0x0', '0x50', '0x36', '0xb0', '0x0', '0x0', '0x10', '0x24', '0xb', '0x10', '0x27', '0x10', '0x0', '0x0', '0x0', '0x99', '0x6', '0x0', '0x36', '0xb0', '0x3f']
+
+
+
+
+
+
+
+    adjustments:
+    reset flywheel adaptation: (only if you changed flywheel!)
+    ?  ['0x2', '0x31', '0x85', '0xb8']
+    ?  ['0x2', '0x71', '0x85', '0xf8']
+
+    reset fuel adaptation (1)
+    if changed injector, o2 sensor, fuel pump, fuel rail, map sensor, intake manifold, fixed air leak
+    ?  ['0x3', '0x31', '0xca', '0x7d', '0x7b']
+    ?  ['0x2', '0x71', '0xca', '0x3d']
+
+    reset fuel adaptation (2)
+    only use this if 1 above failed
+    ?  ['0x3', '0x31', '0xca', '0x5d', '0x5b']
+    ?  ['0x2', '0x71', '0xca', '0x3d']
+
+
+
+    tests:
+    main relay:
+    ?  ['0x3', '0x30', '0xa0', '0xff', '0xd2']
+    ?  ['0x2', '0x70', '0xa0', '0x12']
+    off:
+    ?  ['0x3', '0x30', '0xa0', '0xf0', '0xc3']
+    ?  ['0x2', '0x70', '0xa0', '0x12']
+
+    fuel pump:
+    ?  ['0x3', '0x30', '0xa1', '0xff', '0xd3']
+    ?  ['0x2', '0x70', '0xa1', '0x13']
+    off:
+    ?  ['0x3', '0x30', '0xa1', '0xf0', '0xc4']
+    ?  ['0x2', '0x70', '0xa1', '0x13']
+
+    AC compressor
+    ?  ['0x3', '0x30', '0xa3', '0xff', '0xd5']
+    ?  ['0x2', '0x70', '0xa3', '0x15']
+    off:
+    ?  ['0x3', '0x30', '0xa3', '0xf0', '0xc6']
+    ?  ['0x2', '0x70', '0xa3', '0x15']
+
+    electric fan:
+    ?  ['0x3', '0x30', '0xa4', '0xff', '0xd6']
+    ?  ['0x2', '0x70', '0xa4', '0x16']
+    off:
+    ?  ['0x3', '0x30', '0xa4', '0xf0', '0xc7']
+    ?  ['0x2', '0x70', '0xa4', '0x16']
+
+    AC condenser
+    ?  ['0x3', '0x30', '0xa5', '0xff', '0xd7']
+    ?  ['0x2', '0x70', '0xa5', '0x17']
+    off:
+    ?  ['0x3', '0x30', '0xa5', '0xf0', '0xc8']
+    ?  ['0x2', '0x70', '0xa5', '0x17']
+
+    front lambda heater:
+    ?  ['0x3', '0x30', '0xa6', '0xff', '0xd8']
+    ?  ['0x2', '0x70', '0xa6', '0x18']
+    off:
+    ?  ['0x3', '0x30', '0xa6', '0xf0', '0xc9']
+    ?  ['0x2', '0x70', '0xa6', '0x18']
+
+    engine bay fan:
+    ?  ['0x3', '0x30', '0xa9', '0xff', '0xdb']
+    ?  ['0x2', '0x70', '0xa9', '0x1b']
+    off:
+    ?  ['0x3', '0x30', '0xa9', '0xf0', '0xcc']
+    ?  ['0x2', '0x70', '0xa9', '0x1b']
+
+    rear lambda heater
+    ?  ['0x3', '0x30', '0xc3', '0xff', '0xf5']
+    ?  ['0x2', '0x70', '0xc3', '0x35']
+    off:
+    ?  ['0x3', '0x30', '0xc3', '0xf0', '0xe6']
+    ?  ['0x2', '0x70', '0xc3', '0x35']
+
+    engine warning light:
+    ?  ['0x3', '0x30', '0xa2', '0xff', '0xd4']
+    ?  ['0x2', '0x70', '0xa2', '0x14']
+    off:
+    ?  ['0x3', '0x30', '0xa2', '0xf0', '0xc5']
+    ?  ['0x2', '0x70', '0xa2', '0x14']
+
+    engine bay temperature warning light:
+    ?  ['0x3', '0x30', '0xc2', '0xff', '0xf4']
+    ?  ['0x2', '0x70', '0xc2', '0x34']
+    off:
+    ?  ['0x3', '0x30', '0xc2', '0xf0', '0xe5']
+    ?  ['0x2', '0x70', '0xc2', '0x34']
+
+    set RPM gauge to 3000:
+    ?  ['0x3', '0x30', '0xb7', '0xff', '0xe9']
+    ?  ['0x2', '0x70', '0xb7', '0x29']
+    off:
+    ?  ['0x3', '0x30', '0xb7', '0x0', '0xea']
+    ?  ['0x2', '0x70', '0xb7', '0x29']
+
+    idle stepper motor:
+    do with engine fully warm and running,
+    auto cars put in Park gear
+    maybe complicated, is this auto fixing?
+    ?  ['0x3', '0x30', '0xa4', '0xf0', '0xc7']
+    ?  ['0x2', '0x70', '0xa4', '0x16']
+    ?  ['0x3', '0x30', '0xa5', '0xf0', '0xc8']
+    ?  ['0x2', '0x70', '0xa5', '0x17']
+    ?  ['0x3', '0x30', '0xb5', '0xf0', '0xd8']
+    ?  ['0x2', '0x70', '0xb5', '0x27']
+    ?  ['0x3', '0x30', '0xb6', '0xf0', '0xd9']
+    ?  ['0x2', '0x70', '0xb6', '0x28']
+    ?  ['0x5', '0x30', '0xb2', '0xff', '0x0', '0x30', '0x16']
+    ?  ['0x2', '0x70', '0xb2', '0x24']
+    ?  ['0x5', '0x30', '0xb2', '0xff', '0x0', '0x30', '0x16']
+    ?  ['0x2', '0x70', '0xb2', '0x24']
+    ?  ['0x5', '0x30', '0xb2', '0xff', '0x0', '0x30', '0x16']
+    ?  ['0x2', '0x70', '0xb2', '0x24']
+    ?  ['0x5', '0x30', '0xb2', '0xff', '0x0', '0x30', '0x16']
+    ?  ['0x2', '0x70', '0xb2', '0x24']
+    ?  ['0x5', '0x30', '0xb2', '0xff', '0x0', '0x30', '0x16']
+    ?  ['0x2', '0x70', '0xb2', '0x24']
+    ?  ['0x5', '0x30', '0xb2', '0xff', '0x0', '0x30', '0x16']
+    ?  ['0x2', '0x70', '0xb2', '0x24']
+    ?  ['0x5', '0x30', '0xb2', '0xff', '0x0', '0x30', '0x16']
+    ?  ['0x2', '0x70', '0xb2', '0x24']
+    ?  ['0x5', '0x30', '0xb2', '0xff', '0x0', '0x30', '0x16']
+    ?  ['0x2', '0x70', '0xb2', '0x24']
+    ?  ['0x5', '0x30', '0xb2', '0xff', '0x0', '0x30', '0x16']
+    ?  ['0x2', '0x70', '0xb2', '0x24']
+    ?  ['0x5', '0x30', '0xb2', '0xff', '0x0', '0x30', '0x16']
+    ?  ['0x2', '0x70', '0xb2', '0x24']
+    ?  ['0x5', '0x30', '0xb2', '0xff', '0x0', '0x30', '0x16']
+    ?  ['0x2', '0x70', '0xb2', '0x24']
+    ?  ['0x3', '0x30', '0xb5', '0x0', '0xe8']
+    ?  ['0x2', '0x70', '0xb5', '0x27']
+    ?  ['0x3', '0x30', '0xa4', '0x0', '0xd7']
+    ?  ['0x2', '0x70', '0xa4', '0x16']
+    ?  ['0x3', '0x30', '0xa5', '0x0', '0xd8']
+    ?  ['0x2', '0x70', '0xa5', '0x17']
+-->
+
+    <br/>
+    <br/>
+    <hr/>
+  </div>
+
+  <div class="hideRc5Only" style="display: none;">
+    <h2><i class="fas fa-tools"></i> Commands (RC5 module)</h2>
+    <a class="btn btn-warning" onclick="userActionClearFaults = true; return false;">Clear fault codes</a><br/>
+
+    <br/>
+    <br/>
+    <hr/>
+  </div>
+
+  <h2>Live graphs</h2>
+  <div id='canvases'>
+    Click the graph button next to live data items that you want to show a graph for<br/>
+    <br/>
+  </div>
+
+<hr/>
+
+  <h2><i class="fas fa-tachometer-alt"></i> Data</h2>
+  <div>
+    <a class="btn btn-light" onclick="downloadData(); return false;"><i class="fas fa-download"></i> Download data as CSV file</a> <span id="numCollectedDatapoints">0</span> datapoints collected so far<br/>
+    <br/>
+    <div class="hideMems3Only" style="display: none;">
+      <a class="btn btn-light" onclick="downloadEeprom(); return false;"><i class="fas fa-download"></i> Download EEPROM dump</a> <span id="numCollectedEepromBytes">0/196606</span> EEPROM bytes read so far
+    </div>
+
+  </div>
+  <br/>
+
+  <strong>Faults</strong>
+  <div id="faults"></div>
+  <strong>Raw data</strong>
+  <div id="outputs"></div>
+
+
+
+
+
+
+
+
+</div><!-- end hideBeforeConnection -->
+
+
+</div><!-- end container -->
+
+<div id="footer" class="footer"></div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+
+<script src="globals.js"></script>
+<script src="helpers.js"></script>
+<script src="output.js"></script>
+<script src="script.js"></script>
+<script src="canvas.js"></script>
+<script src="agent.js"></script>
+
+<script>
+$(function () {
+  $('[data-toggle="popover"]').popover()
+})
+</script>
+</body>
+</html>
