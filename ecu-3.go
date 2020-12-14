@@ -168,9 +168,10 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 		return nil, err
 	}
 
-	mode, err := sp.GetMode()
-	fmt.Println("Serial cable set to:")
-	fmt.Println(mode)
+	// this displays the parity incorrectly so stop printing it
+	// mode, err := sp.GetMode()
+	// fmt.Println("Serial cable set to:")
+	// fmt.Println(mode)
 
 	ecu3SendCommand(sp, ecu3InitCommand)
 
