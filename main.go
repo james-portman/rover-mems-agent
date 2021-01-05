@@ -7,7 +7,7 @@ import (
 	"time"
 	"errors"
 	"os/exec"
-	"sync"
+	// "sync"
 )
 
 var (
@@ -18,7 +18,7 @@ var (
 	globalAlert = ""
 
 	globalDataOutput = map[string] float32{}
-	globalDataOutputLock = sync.RWMutex{}
+	// globalDataOutputLock = sync.RWMutex{}
 
 	globalAgentVersion = "1.0.0-RC"
 )

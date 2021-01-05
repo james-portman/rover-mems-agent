@@ -336,7 +336,7 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 		// todo - all the point values are being lost
 
 		// actual responses
-		globalDataOutputLock.Lock()
+		// globalDataOutputLock.Lock()
 
 		if slicesEqual(actualData, twojWokeResponse) {
 			fmt.Println("< ECU woke up")
@@ -640,6 +640,7 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 		twojSendNextCommand(sp, twojPongResponse)
 
 		globalDataOutputLock.Unlock()
+		// globalDataOutputLock.Unlock()
 
 	}
 	if readLoops >= readLoopsLimit {

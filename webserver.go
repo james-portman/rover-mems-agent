@@ -20,7 +20,7 @@ func runWebserver() {
 	router.Use(static.Serve("/", static.LocalFile("web-static", false)))
 
   router.GET("/api", func(c *gin.Context) {
-		globalDataOutputLock.RLock()
+		// globalDataOutputLock.RLock()
     c.JSON(200, gin.H{
       "faults": globalFaults,
       "connected": globalConnected,
@@ -30,7 +30,7 @@ func runWebserver() {
 			"ecuData": globalDataOutput,
 			"agentVersion": globalAgentVersion,
     })
-		globalDataOutputLock.RUnlock()
+		// globalDataOutputLock.RUnlock()
 		if globalAlert != "" {
 			globalAlert = ""
 		}
