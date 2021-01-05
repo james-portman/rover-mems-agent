@@ -639,7 +639,7 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 		buffer = nil
 		twojSendNextCommand(sp, twojPongResponse)
 
-		globalDataOutputLock.Unlock()
+		// globalDataOutputLock.Unlock()
 		// globalDataOutputLock.Unlock()
 
 	}
