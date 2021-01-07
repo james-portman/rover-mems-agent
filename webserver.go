@@ -1,7 +1,7 @@
 package main
 
 import (
-	"io/ioutil"
+	// "io/ioutil"
 	"net/http"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/cors"
@@ -10,7 +10,7 @@ import (
 
 func runWebserver() {
 	gin.SetMode(gin.ReleaseMode)
-	gin.DefaultWriter = ioutil.Discard // to disable web hits output to console
+	// gin.DefaultWriter = ioutil.Discard // to disable web hits output to console
 	// gin.DefaultWriter = colorable.NewColorableStdout()
 	// gin.ForceConsoleColor()
 
@@ -20,7 +20,8 @@ func runWebserver() {
 	router.Use(static.Serve("/", static.LocalFile("web-static", false)))
 
   router.GET("/api", func(c *gin.Context) {
-		// globalDataOutputLock.RLock()
+		globalDataOutputLock.RLock()
+		defer globalDataOutputLock.RUnlock()
     c.JSON(200, gin.H{
       "faults": globalFaults,
       "connected": globalConnected,
@@ -30,7 +31,6 @@ func runWebserver() {
 			"ecuData": globalDataOutput,
 			"agentVersion": globalAgentVersion,
     })
-		// globalDataOutputLock.RUnlock()
 		if globalAlert != "" {
 			globalAlert = ""
 		}

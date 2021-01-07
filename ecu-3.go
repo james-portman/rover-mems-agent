@@ -257,7 +257,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 
 		//
 		// actual responses
-		// globalDataOutputLock.Lock()
+		globalDataOutputLock.Lock()
 		//
 		if slicesEqual(actualData[0:2], ecu3InitAccepted) {
 			fmt.Println("< ECU woke up")
@@ -265,6 +265,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 			globalConnected = true
 			time.Sleep(50 * time.Millisecond)
 			ecu3SendNextCommand(sp, ecu3InitAccepted)
+			globalDataOutputLock.Unlock()
 			continue
 		}
 		if slicesEqual(actualData, ecu3StartDiagResponse) {
@@ -272,6 +273,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 			buffer = nil
 			time.Sleep(50 * time.Millisecond)
 			ecu3SendNextCommand(sp, ecu3StartDiagResponse)
+			globalDataOutputLock.Unlock()
 			continue
 		}
 		if slicesEqual(actualData[0:2], ecu3SeedResponse) {
@@ -284,6 +286,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 				buffer = nil
 				time.Sleep(50 * time.Millisecond)
 				ecu3SendNextCommand(sp, nil)
+				globalDataOutputLock.Unlock()
 				continue
 			} else {
 				// do key generation
@@ -291,6 +294,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 				buffer = nil
 				time.Sleep(50 * time.Millisecond)
 				ecu3SendNextCommand(sp, ecu3SeedResponse)
+				globalDataOutputLock.Unlock()
 				continue
 			}
 
@@ -300,6 +304,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 			buffer = nil
 			time.Sleep(50 * time.Millisecond)
 			ecu3SendNextCommand(sp, ecu3KeyAcceptResponse)
+			globalDataOutputLock.Unlock()
 			continue
 		}
 		if slicesEqual(actualData, ecu3PongResponse) {
@@ -307,6 +312,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 			buffer = nil
 			time.Sleep(50 * time.Millisecond)
 			ecu3SendNextCommand(sp, ecu3PongResponse)
+			globalDataOutputLock.Unlock()
 			continue
 		}
 		if slicesEqual(actualData, ecu3FaultsClearedResponse) {
@@ -315,6 +321,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 			buffer = nil
 			time.Sleep(50 * time.Millisecond)
 			ecu3SendNextCommand(sp, ecu3FaultsClearedResponse)
+			globalDataOutputLock.Unlock()
 			continue
 		}
 
@@ -324,6 +331,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 			buffer = nil
 			time.Sleep(50 * time.Millisecond)
 			ecu3SendNextCommand(sp, ecu3ResponseFaults)
+			globalDataOutputLock.Unlock()
 			continue
 		}
 
@@ -347,6 +355,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 			buffer = nil
 			time.Sleep(50 * time.Millisecond)
 			ecu3SendNextCommand(sp, ecu3ResponseData00)
+			globalDataOutputLock.Unlock()
 			continue
 		}
 		if slicesEqual(actualData[0:2], ecu3ResponseData06) {
@@ -369,6 +378,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 			buffer = nil
 			time.Sleep(50 * time.Millisecond)
 			ecu3SendNextCommand(sp, ecu3ResponseData06)
+			globalDataOutputLock.Unlock()
 			continue
 		}
 		if slicesEqual(actualData[0:2], ecu3ResponseData0A) {
@@ -395,6 +405,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 			buffer = nil
 			time.Sleep(50 * time.Millisecond)
 			ecu3SendNextCommand(sp, ecu3ResponseData0A)
+			globalDataOutputLock.Unlock()
 			continue
 		}
 		if slicesEqual(actualData[0:2], ecu3ResponseData0B) {
@@ -408,6 +419,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 			buffer = nil
 			time.Sleep(50 * time.Millisecond)
 			ecu3SendNextCommand(sp, ecu3ResponseData0B)
+			globalDataOutputLock.Unlock()
 			continue
 		}
 		if slicesEqual(actualData[0:2], ecu3ResponseData21) {
@@ -418,6 +430,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 			buffer = nil
 			time.Sleep(50 * time.Millisecond)
 			ecu3SendNextCommand(sp, ecu3ResponseData21)
+			globalDataOutputLock.Unlock()
 			continue
 		}
 
@@ -433,7 +446,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 		fmt.Printf("actualData %d bytes \n%s", len(actualData), hex.Dump(actualData))
 		buffer = buffer[totalLength:]
 
-		// globalDataOutputLock.Unlock()
+		globalDataOutputLock.Unlock()
 
 	}
 	if readLoops >= readLoopsLimit {

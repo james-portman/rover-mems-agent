@@ -227,8 +227,8 @@ func ecu1xLoop(sp sers.SerialPort, kline bool) ([]byte, error) {
 }
 
 func ecu1xParseData80(data []byte) {
-	// globalDataOutputLock.Lock()
-	// defer globalDataOutputLock.Unlock()
+	globalDataOutputLock.Lock()
+	defer globalDataOutputLock.Unlock()
 
   faults := []string {}
   // fmt.Printf("data 80 %d bytes \n%s", len(data), hex.Dump(data))
@@ -357,6 +357,8 @@ func ecu1xParseData80(data []byte) {
 
 
 func ecu1xParseData7D(data []byte) {
+	globalDataOutputLock.Lock()
+	defer globalDataOutputLock.Unlock()
   // fmt.Printf("data 7D %d bytes \n%s", len(data), hex.Dump(data))
 
   // data[0] is the command (0x7D)
