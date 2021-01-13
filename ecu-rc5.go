@@ -6,6 +6,7 @@ import (
 	"errors"
 	// "encoding/hex"
 	"github.com/distributed/sers"
+	"strconv"
 )
 
 var (
@@ -290,7 +291,7 @@ func rc5ParseFaults(buffer []byte) {
 
 		faultText, ok := rc5Faults[fault];
 		if !ok {
-			faultText = "unknown fault: "+string(fault);
+			faultText = "unknown fault: "+strconv.Itoa(fault);
 		}
 		// fmt.Println(faultText)
 

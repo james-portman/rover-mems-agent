@@ -6,6 +6,7 @@ import (
 	"errors"
 	"encoding/hex"
 	"github.com/distributed/sers"
+	"strconv"
 )
 
 var (
@@ -474,12 +475,12 @@ func ecu3ParseFaults(buffer []byte) {
 
 		output_fault_type, ok := ecu3FaultTypes[int(faulttype)];
 		if !ok {
-			output_fault_type = "unknown ("+string(int(faulttype))+")"
+			output_fault_type = "unknown ("+strconv.Itoa(int(faulttype))+")"
 		}
 
     output_fault, ok := ecu3Faults[int(thisfault)]
 		if !ok {
-			output_fault = "unknown ("+string(int(thisfault))+")"
+			output_fault = "unknown ("+strconv.Itoa(int(thisfault))+")"
 		}
 
     full_output_text := "Fault - "+output_fault+" - "+output_fault_type
