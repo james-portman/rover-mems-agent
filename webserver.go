@@ -26,8 +26,7 @@ func runWebserver() {
 	router.Use(static.Serve("/", static.LocalFile("web-static", false)))
 
   router.GET("/api", func(c *gin.Context) {
-		globalDataOutputLock.RLock()
-		defer globalDataOutputLock.RUnlock()
+		globalDataOutputLock.Lock()
     c.JSON(200, gin.H{
       "faults": globalFaults,
       "connected": globalConnected,
@@ -40,6 +39,7 @@ func runWebserver() {
 		if globalAlert != "" {
 			globalAlert = ""
 		}
+		globalDataOutputLock.Unlock()
   })
 
 	router.GET("/ping", func(c *gin.Context) {
@@ -55,22 +55,28 @@ func runWebserver() {
   })
 
   router.GET("/faults", func(c *gin.Context) {
+		globalDataOutputLock.RLock()
     c.JSON(200, gin.H{
       "faults": globalFaults,
     })
+		globalDataOutputLock.RUnlock()
   })
 
 	router.GET("/ecu/:name", func(c *gin.Context) {
+		globalDataOutputLock.Lock()
 		name := c.Param("name")
     globalEcuType = name
 		c.String(http.StatusOK, "ECU type set to %s", name)
 		// globalAlert = "Agent confirms ECU set to "+name
+		globalDataOutputLock.Unlock()
 	})
 
   router.GET("/command/:name", func(c *gin.Context) {
+		globalDataOutputLock.Lock()
     name := c.Param("name")
     globalUserCommand = name
     c.String(http.StatusOK, "User command accepted %s", name)
+		globalDataOutputLock.Unlock()
   })
 
 	router.GET("/ws", func(c *gin.Context) {
