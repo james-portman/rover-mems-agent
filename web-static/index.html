@@ -168,23 +168,20 @@ Lower the refresh speed if you have issues, this is mostly dependent on your PC 
 
   <div class="">
     <span id="ecuConnected"></span>
-    <span id="spinner">-</span><br/>
+    <span id="spinner">-</span>
   </div>
 
   <!-- Selected MEMS ECU type: <span id="ecuChosen"></span><br/> -->
   <div class="hideMems1xOnly" style="display: none;">
     <span id="ecuId">ECU ID: Connect first</span><br/>
     <span id="carInfo">Info: Connect first</span><br/>
+    <br/>
   </div>
-  <br/>
   <hr/>
 
 
 
   <div id="commands_alert_placeholder"></div>
-  <i class="fas fa-info-circle" data-trigger="hover" data-toggle="popover" title="Note" data-content="Note: some commands may not work on your car depending on specification e.g. you might not have air con, some RPM gauges are wired into coil packs rather than ECU (RPM gauge test won't work), etc"></i><br/>
-
-
 
   <div class="hideMems1xOnly" style="display: none;">
     <h2><i class="fas fa-tools"></i> Commands/tests (MEMS 1.x)</h2>
@@ -241,10 +238,10 @@ Lower the refresh speed if you have issues, this is mostly dependent on your PC 
   <div class="hideMems3Only" style="display: none;">
     <h2><i class="fas fa-tools"></i> Commands (MEMS3)</h2>
     <a class="btn btn-warning" onclick="runUserAction('clearfaults'); return false;">Clear fault codes</a><br/>
-    <br/>
-    <a class="btn btn-warning" onclick="eepromReadMode = true; this.classList.remove('btn-warning'); this.classList.add('btn-secondary'); return false;">Dump EEPROM</a>
-    <br/>
-    <br/>
+    <!-- <br/> -->
+    <!-- <a class="btn btn-warning" onclick="eepromReadMode = true; this.classList.remove('btn-warning'); this.classList.add('btn-secondary'); return false;">Dump EEPROM</a> -->
+    <!-- <br/> -->
+    <!-- <br/> -->
     <hr/>
   </div>
 
@@ -266,11 +263,11 @@ Lower the refresh speed if you have issues, this is mostly dependent on your PC 
 
   <h2><i class="fas fa-tachometer-alt"></i> Data</h2>
   <div>
-    <a class="btn btn-light" onclick="downloadData(); return false;"><i class="fas fa-download"></i> Download data as CSV file</a> <span id="numCollectedDatapoints">0</span> datapoints collected so far<br/>
-    <br/>
-    <div class="hideMems3Only" style="display: none;">
+    <a class="btn btn-light" onclick="downloadData(); return false;"><i class="fas fa-download"></i> Download captured data as CSV file</a> <span id="numCollectedDatapoints">0</span> datapoints collected so far<br/>
+    <!-- <br/> -->
+    <!-- <div class="hideMems3Only" style="display: none;">
       <a class="btn btn-light" onclick="downloadEeprom(); return false;"><i class="fas fa-download"></i> Download EEPROM dump</a> <span id="numCollectedEepromBytes">0/196606</span> EEPROM bytes read so far
-    </div>
+    </div> -->
 
   </div>
   <br/>
