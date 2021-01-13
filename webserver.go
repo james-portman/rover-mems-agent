@@ -1,7 +1,7 @@
 package main
 
 import (
-	// "io/ioutil"
+	"io/ioutil"
 	"net/http"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/cors"
@@ -10,7 +10,7 @@ import (
 
 func runWebserver() {
 	gin.SetMode(gin.ReleaseMode)
-	// gin.DefaultWriter = ioutil.Discard // to disable web hits output to console
+	gin.DefaultWriter = ioutil.Discard // to disable web hits output to console
 	// gin.DefaultWriter = colorable.NewColorableStdout()
 	// gin.ForceConsoleColor()
 
