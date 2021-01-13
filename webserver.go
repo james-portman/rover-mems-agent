@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -63,7 +64,7 @@ func runWebserver() {
 		name := c.Param("name")
     globalEcuType = name
 		c.String(http.StatusOK, "ECU type set to %s", name)
-		globalAlert = "Agent confirms ECU set to "+name
+		// globalAlert = "Agent confirms ECU set to "+name
 	})
 
   router.GET("/command/:name", func(c *gin.Context) {
@@ -126,6 +127,7 @@ func wsiteration(conn *websocket.Conn, iteration int) error {
 		data["alert"] = globalAlert
 		data["ecuData"] = globalDataOutput
 		data["agentVersion"] = globalAgentVersion
+		data["timestamp"] = time.Now().String()
 		if globalAlert != "" {
 			globalAlert = ""
 		}

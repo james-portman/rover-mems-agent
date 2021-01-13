@@ -8,27 +8,6 @@ const ecuIdElement = document.getElementById('ecuId');
 const carInfoElement = document.getElementById('carInfo');
 const debugWrapperElement = document.getElementById('debugWrapper');
 
-var userActionClearFaults = false;
-var userActionStartTestRpmGauge = false;
-var userActionStopTestRpmGauge = false; // doesn't work for 1.9
-
-var userActionStartTestLambdaHeater = false;
-var userActionStopTestLambdaHeater = false;
-var userActionStartTestACClutch = false;
-var userActionStopTestACClutch = false;
-var userActionStartTestFuelPump = false;
-var userActionStopTestFuelPump = false;
-var userActionStartTestFan1 = false;
-var userActionStopTestFan1 = false;
-var userActionStartTestPurgeValve = false;
-var userActionStopTestPurgeValve = false;
-var userActionStartTestACFan = false;
-var userActionStopTestACFan = false;
-var userActionStartTestLambda2Heater = false;
-var userActionStopTestLambda2Heater = false;
-var userActionIncreaseIdleSpeed = false;
-var userActionDecreaseIdleSpeed = false;
-
 outputHistory = [];
 
 ecuConnected = false;
@@ -64,14 +43,6 @@ function commandsAlert(message, alert_type, timeout) {
   }, timeout);
 }
 
-function debugTicked(element) {
-  if (element.checked) {
-    debugWrapperElement.style.display = "block";
-  } else {
-    debugWrapperElement.style.display = "none";
-  }
-}
-
 function updateEcuId() {
   ecuIdElement.textContent = "ECU ID: "+ecuId;
   if (knownEcus[ecuId] != undefined) {
@@ -96,17 +67,17 @@ function log(message) {
   debug(message);
 }
 function debug(message) {
-  if (debugEnabledElement.checked) {
-    var newText = message + '\n' + debugPre.textContent;
-    if (newText.length > 1000) {
-      newText = newText.slice(0, 999);
-    }
-    debugPre.textContent = newText;
-
-    if (debugConsoleEnabledElement.checked) {
-      console.log(message);
-    }
-  }
+  // if (debugEnabledElement.checked) {
+  //   var newText = message + '\n' + debugPre.textContent;
+  //   if (newText.length > 1000) {
+  //     newText = newText.slice(0, 999);
+  //   }
+  //   debugPre.textContent = newText;
+  //
+  //   if (debugConsoleEnabledElement.checked) {
+  //     console.log(message);
+  //   }
+  // }
 }
 
 function setEcuConnected(connected) {

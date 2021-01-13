@@ -37,7 +37,7 @@ async function sleepUntil(timestampMs) {
 
 function showDivs() {
     // show divs
-  switch (ecuVersion) {
+  switch (ecuVersionDiv.value) {
     case "1.9":
       for (var i=0; i<mems19OnlyDivs.length; i++) {
         mems19OnlyDivs[i].style.display = "block";
@@ -70,12 +70,12 @@ function showDivs() {
 }
 
 
-function getEcuVersionFromForm() {
-  var radios = document.getElementsByName('ecuVersion');
-  for (var i = 0, length = radios.length; i < length; i++) {
-    if (radios[i].checked) {
-      ecuVersion = radios[i].value;
-      break;
-    }
-  }
-}
+// function getEcuVersionFromForm() {
+//   var radios = document.getElementsByName('ecuVersion');
+//   for (var i = 0, length = radios.length; i < length; i++) {
+//     if (radios[i].checked) {
+//       ecuVersion = radios[i].value;
+//       break;
+//     }
+//   }
+// }

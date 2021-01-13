@@ -16,6 +16,7 @@ function newwebsocket() {
       window.parsedCounter++;
     } catch(err) {
       console.log("failed parsing");
+      console.log(err);
     }
     // console.log(data);
 
