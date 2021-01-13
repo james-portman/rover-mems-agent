@@ -1,4 +1,4 @@
-window.messageDelay = 1000; // how long to sleep for next message request (ms)
+var refreshSpeedSelect = document.getElementById("refreshSpeed");
 
 function newwebsocket() {
   url = 'ws://localhost:8080/ws';
@@ -22,7 +22,7 @@ function newwebsocket() {
 
     // put some delay in before next data so we don't run 100%, for CPU/heat mostly
     // also fastest CPU puts out data is 50hz/20ms anyway
-    setTimeout(function() { requestWsData(); }, window.messageDelay);
+    setTimeout(function() { requestWsData(); }, refreshSpeedSelect.value);
   }
 
   c.onopen = function(){

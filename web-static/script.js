@@ -12,11 +12,6 @@ outputHistory = [];
 
 ecuConnected = false;
 ecuId = "";
-doingSlowInit19 = false;
-
-lastKLineByte = 0xFF;
-gotKLineEcho = false;
-kLineEcu = false;
 
 knownEcus = {
   "9A,00,02,02": "MNE?????? Rover Mini SPI",
@@ -187,14 +182,6 @@ async function timedOut() {
   spin();
   ecuConnectedElement.textContent = "Connecting...";
 
-}
-
-async function initEcu131619() {
-  doingSlowInit19 = false;
-  resetTimeout(2000);
-  log("Attempting ECU connection...");
-  await sendToEcu([0xCA]);
-  await parseDataBuffer1x();
 }
 
 setEcuConnected(false);

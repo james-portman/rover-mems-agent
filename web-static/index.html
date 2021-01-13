@@ -96,7 +96,7 @@ if (location.protocol !== 'https:' && location.hostname != 'localhost') {
 
 <div class="container-sm">
 
-<h3>ECU/Module type:</h3>
+ECU/Module type:
 <select id="ecuVersion" name="ecuVersion" onchange="ecuTypeSelectChanged()">
   <option value="">--Select one--</option>
   <option value="1.2">MEMS 1.2</option>
@@ -107,10 +107,18 @@ if (location.protocol !== 'https:' && location.hostname != 'localhost') {
   <option value="rc5">Airbag RC5</option>
 </select>
 <br/>
+Data refresh speed:
+<select id="refreshSpeed" name="refreshSpeed">
+  <option value="100">10x / second</option>
+  <option value="200" selected>5x / second</option>
+  <option value="500">2x / second</option>
+  <option value="1000">1x / second</option>
+</select>
+<br/>
+Lower the refresh speed if you have issues, this is mostly dependent on your PC speed, the ECU data collection already runs as fast as possible
 <hr/>
 
 <div id="connectionSection">
-
 
   <div>
     <h3>More information</h3>
@@ -120,7 +128,6 @@ if (location.protocol !== 'https:' && location.hostname != 'localhost') {
     Visit the GitHub repository to see the code or report issues, feedback, or to request changes<br/>
     <a target="_blank" href="https://github.com/james-portman/rover-mems-agent">https://github.com/james-portman/rover-mems-agent</a><br/>
   </div>
-
 
   <br/>
   <hr/>
