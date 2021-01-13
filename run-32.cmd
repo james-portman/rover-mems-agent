@@ -1,4 +1,3 @@
-@echo off
 set GOARCH=386
 del *.exe
 go build -ldflags="-s -w" -o rover-mems_%GOARCH%-TEST.exe

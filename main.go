@@ -21,9 +21,13 @@ var (
 	globalDataOutputLock = sync.RWMutex{}
 
 	globalAgentVersion = "1.0.0-RC"
+
+	outgoingData chan string // for pushing data out of the websocket
 )
 
 func main() {
+
+	outgoingData = make(chan string, 1000) // buffer on it in case the web browser is slow?
 
 	fmt.Println("Rover MEMS Diagnostic Agent version "+globalAgentVersion)
 	fmt.Println("Going to run on http://localhost:8080/")

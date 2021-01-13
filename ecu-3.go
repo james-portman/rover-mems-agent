@@ -277,7 +277,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 			continue
 		}
 		if slicesEqual(actualData[0:2], ecu3SeedResponse) {
-			fmt.Println("< seed")
+			fmt.Println("< seed ")
 			ecu3Seed = int(actualData[2]) << 8
 			ecu3Seed += int(actualData[3])
 			fmt.Println(ecu3Seed)
@@ -287,6 +287,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 				time.Sleep(50 * time.Millisecond)
 				ecu3SendNextCommand(sp, nil)
 				globalDataOutputLock.Unlock()
+				fmt.Println("Auth not required, collecting data...")
 				continue
 			} else {
 				// do key generation
@@ -300,7 +301,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 
 		}
 		if slicesEqual(actualData, ecu3KeyAcceptResponse) {
-			fmt.Println("< Key accepted")
+			fmt.Println("< Key accepted, collecting data...")
 			buffer = nil
 			time.Sleep(50 * time.Millisecond)
 			ecu3SendNextCommand(sp, ecu3KeyAcceptResponse)
@@ -308,7 +309,8 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 			continue
 		}
 		if slicesEqual(actualData, ecu3PongResponse) {
-			fmt.Println("< PONG")
+			// fmt.Println("< PONG")
+			fmt.Print(".")
 			buffer = nil
 			time.Sleep(50 * time.Millisecond)
 			ecu3SendNextCommand(sp, ecu3PongResponse)
@@ -316,7 +318,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 			continue
 		}
 		if slicesEqual(actualData, ecu3FaultsClearedResponse) {
-			fmt.Println("< FAULT CLEARED")
+			fmt.Println("< FAULTS CLEARED")
 			globalAlert = "ECU reports faults cleared"
 			buffer = nil
 			time.Sleep(50 * time.Millisecond)
@@ -326,7 +328,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 		}
 
 		if slicesEqual(actualData[0:len(ecu3ResponseFaults)], ecu3ResponseFaults) {
-			fmt.Println("< Faults")
+			// fmt.Println("< Faults")
 			ecu3ParseFaults(actualData)
 			buffer = nil
 			time.Sleep(50 * time.Millisecond)
@@ -336,7 +338,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 		}
 
 		if slicesEqual(actualData[0:2], ecu3ResponseData00) {
-			fmt.Println("got data packet 00")
+			// fmt.Println("got data packet 00")
 			coolant_temp := int(actualData[2]) << 8;
 			coolant_temp += int(actualData[3]);
 			coolant_temp -= 2730;
@@ -359,7 +361,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 			continue
 		}
 		if slicesEqual(actualData[0:2], ecu3ResponseData06) {
-			fmt.Println("got data packet 06")
+			// fmt.Println("got data packet 06")
 			mapKpa := actualData[2] << 8;
       mapKpa += actualData[3];
 			globalDataOutput["map_sensor_kpa"] = float32(mapKpa) / 100
@@ -382,7 +384,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 			continue
 		}
 		if slicesEqual(actualData[0:2], ecu3ResponseData0A) {
-			fmt.Println("got data packet 0A")
+			// fmt.Println("got data packet 0A")
 			fuel_feedback := actualData[2] << 8;
       fuel_feedback += actualData[3];
 			globalDataOutput["fuel_feedback_percent"] = float32(fuel_feedback) / 100
@@ -409,7 +411,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 			continue
 		}
 		if slicesEqual(actualData[0:2], ecu3ResponseData0B) {
-			fmt.Println("got data packet 0B")
+			// fmt.Println("got data packet 0B")
 			coil1 := actualData[2] << 8;
       coil1 += actualData[3];
 			globalDataOutput["coil_1_time_uS"] = float32(coil1)
@@ -423,7 +425,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 			continue
 		}
 		if slicesEqual(actualData[0:2], ecu3ResponseData21) {
-			fmt.Println("got data packet 21")
+			// fmt.Println("got data packet 21")
 			rpmdev := actualData[2] << 8;
       rpmdev += actualData[3];
       globalDataOutput["rpm_deviation"] = float32(rpmdev)
