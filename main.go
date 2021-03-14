@@ -23,7 +23,7 @@ var (
 	globalDataOutput = map[string] float32{}
 	globalDataOutputLock = sync.RWMutex{}
 
-	globalAgentVersion = "1.1.0"
+	globalAgentVersion = "1.2.0"
 
 	outgoingData chan string // for pushing data out of the websocket
 )
