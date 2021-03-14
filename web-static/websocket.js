@@ -15,6 +15,7 @@ function newwebsocket() {
       parseAgentResponse(data);
       window.parsedCounter++;
     } catch(err) {
+      commandsError("Failed parsing data from agent");
       console.log("failed parsing");
       console.log(err);
     }
@@ -30,13 +31,15 @@ function newwebsocket() {
   }
 
   c.onerror = function(){
+    commandsError("Error while communicating with agent, trying to reconnect...");
     console.log("WEBSOCKET ERROR, will make a new connection");
     c.close()
   }
 
   c.onclose = function(){
     console.log("WEBSOCKET closed");
-    setTimeout(function(){ newwebsocket(); }, 1000 );
+    commandsError("Connection to agent closed. You may need to restart it.");
+    // setTimeout(function(){ newwebsocket(); }, 1000 );
   }
 
   // send = function(data){
