@@ -38,6 +38,14 @@ function commandsAlert(message, alert_type, timeout) {
   }, timeout);
 }
 
+
+var commandsErrorTimer;
+function commandsError(message, alert_type, timeout) {
+  if (alert_type == undefined) { alert_type = "danger"; }
+  if (timeout == undefined) { timeout = 2000; }
+  $('#commands_error_placeholder').html('<div class="commands-alert alert alert-'+alert_type+' alert-dismissible fade show"><a href="#" class="close" data-dismiss="alert">×</a><span>'+message+'</span></div>')
+}
+
 function updateEcuId() {
   ecuIdElement.textContent = "ECU ID: "+ecuId;
   if (knownEcus[ecuId] != undefined) {

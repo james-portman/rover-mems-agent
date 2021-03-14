@@ -96,6 +96,8 @@ if (location.protocol !== 'https:' && location.hostname != 'localhost') {
 
 <div class="container-sm">
 
+<div id="commands_error_placeholder"></div>
+
 ECU/Module type:
 <select id="ecuVersion" name="ecuVersion" onchange="ecuTypeSelectChanged()">
   <option value="">--Select one--</option>
@@ -113,6 +115,11 @@ Data refresh speed:
   <option value="200" selected>5x / second</option>
   <option value="500">2x / second</option>
   <option value="1000">1x / second</option>
+</select>
+<br/>
+(USB) Serial port:
+<select id="serialPort" name="serialPort">
+  <option value="">Select one if available:</option>
 </select>
 <br/>
 Lower the refresh speed if you have issues, this is mostly dependent on your PC speed, the ECU data collection already runs as fast as possible

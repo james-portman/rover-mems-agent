@@ -26,6 +26,9 @@ function runUserAction(userAction) {
 var agentLastSeenFaults = [];
 
 var ecuVersionDiv = document.getElementById("ecuVersion");
+var serialPortUI = document.getElementById("serialPort");
+
+window.serialPorts = [];
 
 function parseAgentResponse(data) {
   spin();
@@ -77,6 +80,11 @@ function parseAgentResponse(data) {
       commandsAlert(data.alert);
     }
   }
+  if (data.error !== undefined) {
+    if (data.error != "") {
+      commandsError(data.error);
+    }
+  }
 
   if (data.ecuData !== undefined) {
     output = {};
@@ -88,5 +96,76 @@ function parseAgentResponse(data) {
     outputData(output);
   }
 
+  if (data.selectedSerialPort !== undefined) {
+
+    if (serialPortUI.value == "") {
+      if (data.selectedSerialPort != "") {
+        // select the one the ECU said
+        for (var i=0; i<serialPortUI.options.length; i++) {
+          if (serialPortUI.options[i].value == data.selectedSerialPort) {
+            if (serialPortUI.options[i].selected == false) {
+              serialPortUI.options[i].selected = true;
+            }
+          }
+        }
+      }
+
+    } else if (data.selectedSerialPort != serialPortUI.value) {
+      debug("Serial port set wrong in agent, telling it which to use")
+      console.log(serialPortUI);
+      fetch(agentAddress+'/serialPort/'+serialPortUI.value, {})
+        .then(
+          function(response) {
+            if (response.status !== 200) {
+              debug('Looks like there was a problem setting agent serial port. Status Code: ' +
+                response.status);
+              return;
+            }
+          }
+        )
+        .catch(function(err) {
+          debug('Fetch Error from agent (serial port setting) :-S', err);
+          console.log('Fetch Error from agent (serial port setting) :-S', err);
+        });
+    }
+  }
+
+  if (data.serialPorts !== undefined) {
+    if (data.serialPorts.length !== window.serialPorts.length || ! data.serialPorts.every(function(value, index) { return value === window.serialPorts[index]})) {
+
+      console.log("serial ports changed");
+      window.serialPorts = data.serialPorts;
+      // add them to UI
+      // remove old
+
+      // delete any we no longer have
+      for (var i=serialPortUI.options.length-1; i>=0; i--) {
+        if (serialPortUI.options[i].value != "" && ! data.serialPorts.includes(serialPortUI.options[i].value)) {
+          serialPortUI.remove(i);
+        }
+      }
+
+
+      for (var i=0; i< data.serialPorts.length; i++) {
+
+        var already = false;
+        for (var j=0; j<serialPortUI.options.length; j++) {
+          if (serialPortUI.options[j].value == data.serialPorts[i]) {
+            already = true;
+          }
+        }
+        if (already) { continue; }
+
+        var option = document.createElement("option");
+        option.text = data.serialPorts[i];
+        option.value = data.serialPorts[i];
+        if (data.selectedSerialPort == option.value) {
+          option.selected = true;
+        }
+        serialPortUI.add(option);
+      }
+
+    }
+  }
 
 }

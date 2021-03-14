@@ -1,6 +1,7 @@
 set GOARCH=386
 del *%GOARCH%.exe
-REM go build -ldflags="-s -w" -o rover-mems_%GOARCH%.exe - upsets windows defender
+
+REM -ldflags="-s -w" - upsets windows defender (strips exe)
 go build -o rover-mems_%GOARCH%.exe
 if %errorlevel% neq 0 exit /b %errorlevel%
 upx -9 rover-mems_%GOARCH%.exe

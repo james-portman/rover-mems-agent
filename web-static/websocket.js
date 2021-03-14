@@ -10,7 +10,7 @@ function newwebsocket() {
     window.counter++;
     try {
       data = JSON.parse(msg.data);
-      // console.log(data);
+      console.log(data);
       // wsParse(data);
       parseAgentResponse(data);
       window.parsedCounter++;

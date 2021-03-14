@@ -33,11 +33,16 @@ func runWebserver() {
       "ecuType": globalEcuType,
       "userCommand": globalUserCommand,
 			"alert": globalAlert,
+			"error": globalError,
 			"ecuData": globalDataOutput,
 			"agentVersion": globalAgentVersion,
     })
+		// clear the error and alert for next time
 		if globalAlert != "" {
 			globalAlert = ""
+		}
+		if globalError != "" {
+			globalError = ""
 		}
 		globalDataOutputLock.Unlock()
   })
@@ -67,6 +72,15 @@ func runWebserver() {
 		name := c.Param("name")
     globalEcuType = name
 		c.String(http.StatusOK, "ECU type set to %s", name)
+		// globalAlert = "Agent confirms ECU set to "+name
+		globalDataOutputLock.Unlock()
+	})
+
+	router.GET("/serialPort/:name", func(c *gin.Context) {
+		globalDataOutputLock.Lock()
+		name := c.Param("name")
+		globalSelectedSerialPort = name
+		c.String(http.StatusOK, "Serial port set to %s", name)
 		// globalAlert = "Agent confirms ECU set to "+name
 		globalDataOutputLock.Unlock()
 	})
@@ -119,7 +133,6 @@ func wsiteration(conn *websocket.Conn, iteration int) error {
     // fmt.Println("WS readmessage failed")
     return err
   }
-	// fmt.Println(messageType)
 
 	var data map[string]interface {} = make(map[string]interface{})
 
@@ -131,11 +144,17 @@ func wsiteration(conn *websocket.Conn, iteration int) error {
 		data["ecuType"] = globalEcuType
 		data["userCommand"] = globalUserCommand
 		data["alert"] = globalAlert
+		data["error"] = globalError
 		data["ecuData"] = globalDataOutput
 		data["agentVersion"] = globalAgentVersion
 		data["timestamp"] = time.Now().String()
+		data["serialPorts"] = globalSerialPorts
+		data["selectedSerialPort"] = globalSelectedSerialPort
 		if globalAlert != "" {
 			globalAlert = ""
+		}
+		if globalError != "" {
+			globalError = ""
 		}
 		globalDataOutputLock.RUnlock()
 
