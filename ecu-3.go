@@ -454,7 +454,7 @@ func readFirstBytesFromPortEcu3(fn string) ([]byte, error) {
 	}
 	if readLoops >= readLoopsLimit {
 		fmt.Printf("had buffer data: got %d bytes \n%s", len(buffer), hex.Dump(buffer))
-		return nil, errors.New("readloop timed out")
+		return nil, errors.New("MEMS 3 timed out")
 	}
 	fmt.Println("fell out of readloop")
 

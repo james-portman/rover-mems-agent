@@ -61,10 +61,10 @@ func main() {
 
 func connectLoop() error {
 
-	if globalEcuType == "" {
-		return nil
-		// return errors.New("No ECU type selected")
-	}
+	// if globalEcuType == "" {
+	// 	return nil
+	// 	// return errors.New("No ECU type selected")
+	// }
 
 	portList, err := nativeGetPortsList()
 	if err != nil {
@@ -104,10 +104,13 @@ func connectLoop() error {
 	}
 
 	// TODO: send normal logging data straight to UI using "outgoingData"
-	fmt.Println("Using port:")
-	fmt.Println(portname)
+	// fmt.Println("Using port:")
+	// fmt.Println(portname)
 
 	switch globalEcuType {
+		case "1.x":
+			_, err = readFirstBytesFromPortEcu1x(portname)
+			break;
 		case "rc5":
 			_, err = readFirstBytesFromPortRc5(portname)
 			break
@@ -120,6 +123,8 @@ func connectLoop() error {
 		case "3":
 			_, err = readFirstBytesFromPortEcu3(portname)
 			break
+		case "":
+			return nil
 		default:
 			return errors.New("Unknown ECU type set")
 	}

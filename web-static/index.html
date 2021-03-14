@@ -98,11 +98,15 @@ if (location.protocol !== 'https:' && location.hostname != 'localhost') {
 
 <div id="commands_error_placeholder"></div>
 
+(USB cable) Serial port:
+<select id="serialPort" name="serialPort">
+  <option value="">Select one if available:</option>
+</select>
+<br/>
 ECU/Module type:
 <select id="ecuVersion" name="ecuVersion" onchange="ecuTypeSelectChanged()">
   <option value="">--Select one--</option>
-  <option value="1.2">MEMS 1.2</option>
-  <option value="1.3-1.6">MEMS 1.3 and 1.6</option>
+  <option value="1.x">MEMS 1.2, 1.3 or 1.6</option>
   <option value="1.9">MEMS 1.9</option>
   <option value="2J">MEMS 2J</option>
   <option value="3">MEMS 3</option>
@@ -115,11 +119,6 @@ Data refresh speed:
   <option value="200" selected>5x / second</option>
   <option value="500">2x / second</option>
   <option value="1000">1x / second</option>
-</select>
-<br/>
-(USB) Serial port:
-<select id="serialPort" name="serialPort">
-  <option value="">Select one if available:</option>
 </select>
 <br/>
 Lower the refresh speed if you have issues, this is mostly dependent on your PC speed, the ECU data collection already runs as fast as possible

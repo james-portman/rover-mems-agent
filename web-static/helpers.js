@@ -36,14 +36,32 @@ async function sleepUntil(timestampMs) {
 
 
 function showDivs() {
-    // show divs
+
+  // change to disable all unsuitable
+  for (var i=0; i<mems19OnlyDivs.length; i++) {
+    mems19OnlyDivs[i].style.display = "none";
+  }
+  for (var i=0; i<mems1xOnlyDivs.length; i++) {
+    mems1xOnlyDivs[i].style.display = "none";
+  }
+  for (var i=0; i<mems2jOnlyDivs.length; i++) {
+    mems2jOnlyDivs[i].style.display = "none";
+  }
+  for (var i=0; i<mems3OnlyDivs.length; i++) {
+    mems3OnlyDivs[i].style.display = "none";
+  }
+  for (var i=0; i<rc5OnlyDivs.length; i++) {
+    rc5OnlyDivs[i].style.display = "none";
+  }
+
+  // show divs
   switch (ecuVersionDiv.value) {
     case "1.9":
       for (var i=0; i<mems19OnlyDivs.length; i++) {
         mems19OnlyDivs[i].style.display = "block";
       }
-    case "1.2":
-    case "1.3-1.6":
+      // no break on purpose
+    case "1.x":
       for (var i=0; i<mems1xOnlyDivs.length; i++) {
         mems1xOnlyDivs[i].style.display = "block";
       }

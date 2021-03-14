@@ -112,7 +112,7 @@ function parseAgentResponse(data) {
 
     } else if (data.selectedSerialPort != serialPortUI.value) {
       debug("Serial port set wrong in agent, telling it which to use")
-      console.log(serialPortUI);
+      // console.log(serialPortUI);
       fetch(agentAddress+'/serialPort/'+serialPortUI.value, {})
         .then(
           function(response) {
@@ -133,7 +133,7 @@ function parseAgentResponse(data) {
   if (data.serialPorts !== undefined) {
     if (data.serialPorts.length !== window.serialPorts.length || ! data.serialPorts.every(function(value, index) { return value === window.serialPorts[index]})) {
 
-      console.log("serial ports changed");
+      // console.log("serial ports changed");
       window.serialPorts = data.serialPorts;
       // add them to UI
       // remove old

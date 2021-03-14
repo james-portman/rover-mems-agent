@@ -15,15 +15,6 @@ var (
   ecu19SpecificInitResponse = []byte {ecu19SpecificInitCommand[0], 0xE9} // includes our echo
 )
 
-func sleepUntil(start time.Time, plus int) {
-  target := start.Add(time.Duration(plus) * time.Millisecond)
-  sleepMs := target.Sub(time.Now()).Milliseconds()
-  // fmt.Println("Sleeping for ms:")
-  // fmt.Println(sleepMs)
-  if sleepMs < 0 { return }
-  time.Sleep(time.Duration(sleepMs) * time.Millisecond)
-}
-
 func readFirstBytesFromPortEcu19(fn string) ([]byte, error) {
 
 	fmt.Println("Connecting to MEMS 1.9 ECU")
@@ -129,7 +120,7 @@ func readFirstBytesFromPortEcu19(fn string) ([]byte, error) {
 	}
 	if readLoops >= readLoopsLimit {
 		fmt.Printf("1.9 had buffer data: got %d bytes \n%s", len(buffer), hex.Dump(buffer))
-		return nil, errors.New("1.9 readloop timed out")
+		return nil, errors.New("MEMS 1.9 timed out")
 	}
 	fmt.Println("fell out of 1.9 readloop")
 
