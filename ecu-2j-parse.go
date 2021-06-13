@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 )
 // todo - all the point values are being lost
 
@@ -253,6 +254,21 @@ func twojParseResponse(actualData []byte) []byte {
 			return twojPongResponse
 		}
 
+		f, err := os.OpenFile(twojReadRomFilename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+		if err != nil {
+		    panic(err)
+		}
+		defer f.Close()
+		f.Write(actualData[1:])
+
+		// progress
+		startAddress := 0x100000
+		endAddress := 0x120000
+		total := endAddress - startAddress
+		progress_bytes := twojReadRomCommandNextAddress - startAddress
+		progress_percent := int(progress_bytes / total * 100)
+		fmt.Printf("ROM dump progress %s\n", progress_percent)
+
 		// fmt.Println("ROM dump is in progress")
 		// go to next address
 		twojReadRomCommandNextAddress += 32
@@ -273,6 +289,12 @@ func twojParseResponse(actualData []byte) []byte {
 	}
 
 	fmt.Println("Unknown data received in ecu-2j-parse.go")
-	fmt.Println(actualData)
+	// fmt.Println(actualData)
+	fmt.Print("Hex (including response code): ")
+	for x := 0; x < len(actualData); x++ {
+		fmt.Printf(" %x", actualData[x])
+	}
+	fmt.Println("")
+
   return twojPongResponse
 }

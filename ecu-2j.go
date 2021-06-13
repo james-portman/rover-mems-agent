@@ -19,7 +19,7 @@ var (
 	twojFaultsClearedResponse = []byte {0x71, 0xCB}
 
 
-	twojLearnImmoCommand = []byte {0x31, 0xD1}
+	twojLearnImmoCommand = []byte {0x31, 0xD1} // doesn't work
 	twojResponseLearnImmoCommand = []byte {0x71, 0xD1}
 
 	twojRead722Command = []byte {0x23, 0x00, 0x07, 0x22, 0x01}
@@ -31,6 +31,29 @@ var (
 	twojReadRomCommandNextAddress = 0x100000
 	twojReadRomCommandContinued = []byte {0x23, 0x10, 0x00, 0x00, 32} // used to loop with new addresses
 	twojReadRomInProgress = false
+	twojReadRomFilename = "rom-dump.bin"
+
+	twojRequestService13 = []byte {0x13}
+
+
+	// service 0x33 requests - gather secretive data, either done by index or the first value
+	twojRequestService33_d5 = []byte {0x33, 0xd5} // data from 0x1a5 ram
+	twojRequestService33_c0 = []byte {0x33, 0xc0} // data from 0x3e2 - immobiliser status
+	// possibles:
+	// 5 = learn or disabled (0xF0F0)
+	// 3 = code correct
+	// 4 = code wrong
+	// 6 = learn or disabled or pin shorted?  (0x0000 or 0xFFFF)
+	// unknown - 0, 1, 2, 7
+
+	twojRequestService33_c8 = []byte {0x33, 0xc8} // data from 0x514
+	twojRequestService33_d2 = []byte {0x33, 0xd2} // data from 0x4b4
+	twojRequestService33_d4 = []byte {0x33, 0xd4} // data loop - 8 bytes of zeros on the bench?
+	twojRequestService33_da = []byte {0x33, 0xda} // data from 0x4b4 (seems same as d2 code but separate function)
+	twojRequestService33_c1 = []byte {0x33, 0xc1} // data from 509, 386, 387
+	twojRequestService33_d7 = []byte {0x33, 0xd7} // checks multiple bit fields to see if clear, returns OK if so, 7F otherwise
+
+
 
 	twojRequestData00 = []byte {0x21, 0x00}
 	twojRequestData01 = []byte {0x21, 0x01}
@@ -93,6 +116,16 @@ var (
 		"learnimmo": twojLearnImmoCommand,
 		"read722": twojRead722Command,
 		"readrom": twojReadRomCommand,
+		"service13": twojRequestService13,
+
+		"service33_d5": twojRequestService33_d5,
+	  "service33_c0": twojRequestService33_c0,
+	  "service33_c8": twojRequestService33_c8,
+	  "service33_d2": twojRequestService33_d2,
+	  "service33_d4": twojRequestService33_d4,
+	  "service33_da": twojRequestService33_da,
+	  "service33_c1": twojRequestService33_c1,
+	  "service33_d7": twojRequestService33_d7,
 	}
 
 )
@@ -315,6 +348,47 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 			buffer = buffer[(len(twojLearnImmoCommand)+2):]
 			continue
 		}
+
+		if slicesEqual(actualData, twojRequestService33_d5) {
+			// fmt.Println("Got our echo")
+			buffer = buffer[(len(twojRequestService33_d5)+2):]
+			continue
+		}
+		if slicesEqual(actualData, twojRequestService33_c0) {
+			buffer = buffer[(len(twojRequestService33_c0)+2):]
+			continue
+		}
+
+		if slicesEqual(actualData, twojRequestService33_c8) {
+			buffer = buffer[(len(twojRequestService33_c8)+2):]
+			continue
+		}
+
+		if slicesEqual(actualData, twojRequestService33_d2) {
+			buffer = buffer[(len(twojRequestService33_d2)+2):]
+			continue
+		}
+
+		if slicesEqual(actualData, twojRequestService33_d4) {
+			buffer = buffer[(len(twojRequestService33_d4)+2):]
+			continue
+		}
+
+		if slicesEqual(actualData, twojRequestService33_da) {
+			buffer = buffer[(len(twojRequestService33_da)+2):]
+			continue
+		}
+
+		if slicesEqual(actualData, twojRequestService33_c1) {
+			buffer = buffer[(len(twojRequestService33_c1)+2):]
+			continue
+		}
+
+		if slicesEqual(actualData, twojRequestService33_d7) {
+			buffer = buffer[(len(twojRequestService33_d7)+2):]
+			continue
+		}
+
 		if slicesEqual(actualData, twojRead722Command) {
 			// fmt.Println("Got our echo")
 			buffer = buffer[(len(twojRead722Command)+2):]
@@ -332,7 +406,11 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 			buffer = buffer[(len(twojReadRomCommandContinued)+2):]
 			continue
 		}
-
+		if slicesEqual(actualData, twojRequestService13) {
+			// fmt.Println("Got our echo")
+			buffer = buffer[(len(twojRequestService13)+2):]
+			continue
+		}
 
 
 		if slicesEqual(actualData, twojRequestFaultsCommand) {
