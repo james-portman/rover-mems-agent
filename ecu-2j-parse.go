@@ -36,10 +36,18 @@ func twojParseResponse(actualData []byte) []byte {
 		return twojPongResponse
 	}
 	if slicesEqual(actualData, twojFaultsClearedResponse) {
-		fmt.Println("< FAULT CLEARED")
+		fmt.Println("< FAULTS CLEARED")
 		globalAlert = "ECU reports faults cleared"
 		return twojFaultsClearedResponse
 	}
+
+	if slicesEqual(actualData, twojResponseLearnImmoCommand) {
+		fmt.Println("< IMMO CODE LEARN")
+		globalAlert = "ECU reports set to learn new immo code"
+		return twojResponseLearnImmoCommand
+	}
+
+
 	if slicesEqual(actualData[0:2], twojFaultsResponse) {
 		fmt.Println("< Faults")
 		twojParseFaults(actualData)
@@ -213,5 +221,58 @@ func twojParseResponse(actualData []byte) []byte {
 
 	// if we get here then something is wrong with the data
 	// todo: cope with 7F (fail/no)
+
+	if (actualData[0] == 0x7F) {
+		fmt.Print("Negative response - 0x7F")
+		if len(actualData) >= 2 {
+			fmt.Print(" ")
+			fmt.Printf("0x%x", actualData[1])
+		}
+		if len(actualData) >= 3 {
+			fmt.Print(" ")
+			fmt.Printf("0x%x", actualData[2])
+		}
+		fmt.Println("")
+		// TODO: print out nicely
+		// TODO: blacklist commands if ECU keeps refusing? e.g. Mini MPI refuses 0x2110
+		return twojPongResponse
+	}
+
+	if (actualData[0] == 0x63) {
+		fmt.Println("Read data by address returned data:")
+		// fmt.Println(actualData)
+		fmt.Print("Hex: ")
+		// start at 1, ignoring the command reply
+		for x := 1; x < len(actualData); x++ {
+			fmt.Printf(" %x", actualData[x])
+		}
+		fmt.Println("")
+
+		if !twojReadRomInProgress {
+			fmt.Println("Not running a ROM dump so going back to ping/data collection")
+			return twojPongResponse
+		}
+
+		// fmt.Println("ROM dump is in progress")
+		// go to next address
+		twojReadRomCommandNextAddress += 32
+		// fmt.Println("next address set (+32)")
+		if twojReadRomCommandNextAddress >= 0x120000 {
+			fmt.Println("Finished ROM dump!")
+			twojReadRomInProgress = false
+			return twojPongResponse
+		}
+		// fmt.Println("More data still to collect, updating command with new address")
+		twojReadRomCommandContinued[1] = byte( (twojReadRomCommandNextAddress >> 16) & 0xFF )
+		twojReadRomCommandContinued[2] = byte( (twojReadRomCommandNextAddress >> 8) & 0xFF )
+		twojReadRomCommandContinued[3] = byte( (twojReadRomCommandNextAddress >> 0) & 0xFF )
+		// fmt.Println("Returning new command")
+		// fmt.Printf("%x\n",twojReadRomCommandContinued)
+		return twojReadRomCommandContinued
+
+	}
+
+	fmt.Println("Unknown data received in ecu-2j-parse.go")
+	fmt.Println(actualData)
   return twojPongResponse
 }

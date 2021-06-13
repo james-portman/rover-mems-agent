@@ -14,9 +14,23 @@ var (
 	twojRequestSeed = []byte {0x27, 0x01}
 	twojSendKey = []byte {0x27, 0x02}
 	twojPingCommand = []byte {0x3E}
-	twojClearFaultsCommand = []byte {0x31, 0xCB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
 
-	twojRequestFaultsCommand = []byte {0x21, 0x19}
+	twojClearFaultsCommand = []byte {0x31, 0xCB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+	twojFaultsClearedResponse = []byte {0x71, 0xCB}
+
+
+	twojLearnImmoCommand = []byte {0x31, 0xD1}
+	twojResponseLearnImmoCommand = []byte {0x71, 0xD1}
+
+	twojRead722Command = []byte {0x23, 0x00, 0x07, 0x22, 0x01}
+
+	// read a load from the start of the ROM 0x100000
+	// eventually needs to get to 0x1FFFFF
+	twojReadRomCommand = []byte {0x23, 0x10, 0x00, 0x00, 32} // 34 bytes might actually be allowed at a time but 32 will be neater blocks
+	// 4096 reads needed at that size
+	twojReadRomCommandNextAddress = 0x100000
+	twojReadRomCommandContinued = []byte {0x23, 0x10, 0x00, 0x00, 32} // used to loop with new addresses
+	twojReadRomInProgress = false
 
 	twojRequestData00 = []byte {0x21, 0x00}
 	twojRequestData01 = []byte {0x21, 0x01}
@@ -36,6 +50,7 @@ var (
 	twojRequestData11 = []byte {0x21, 0x11}
 	twojRequestData12 = []byte {0x21, 0x12}
 	twojRequestData13 = []byte {0x21, 0x13}
+	twojRequestFaultsCommand = []byte {0x21, 0x19}
 	twojRequestData21 = []byte {0x21, 0x21}
 	twojRequestData25 = []byte {0x21, 0x25}
 	twojRequestData3A = []byte {0x21, 0x3A}
@@ -47,7 +62,7 @@ var (
 	twojKey = 0
 	twojKeyAcceptResponse = []byte {0x67, 0x02}
 	twojPongResponse = []byte {0x7E}
-	twojFaultsClearedResponse = []byte {0x71, 0xCB}
+
 
 	twojFaultsResponse = []byte {0x61, 0x19}
 
@@ -75,6 +90,9 @@ var (
 
 	twojUserCommands = map[string] []byte{
 		"clearfaults": twojClearFaultsCommand,
+		"learnimmo": twojLearnImmoCommand,
+		"read722": twojRead722Command,
+		"readrom": twojReadRomCommand,
 	}
 
 )
@@ -99,9 +117,17 @@ func twojSendCommand(sp sers.SerialPort, command []byte) {
 
 
 func twojSendNextCommand(sp sers.SerialPort, previousResponse []byte) {
+
+	if slicesEqual(previousResponse, twojReadRomCommandContinued) {
+		// fmt.Println("Need to keep doing ROM dump")
+		twojSendCommand(sp, twojReadRomCommandContinued)
+		return
+	}
+
 	if globalUserCommand != "" {
 		command, ok := twojUserCommands[globalUserCommand];
 		if ok {
+			fmt.Println("Running 2J user command")
 			globalUserCommand = ""
 			twojSendCommand(sp, command)
 			return
@@ -130,6 +156,11 @@ func twojSendNextCommand(sp sers.SerialPort, previousResponse []byte) {
 
 	} else if slicesEqual(previousResponse, twojFaultsClearedResponse) {
 		twojSendCommand(sp, twojRequestFaultsCommand)
+
+	} else if slicesEqual(previousResponse, twojResponseLearnImmoCommand) {
+		twojSendCommand(sp, twojRequestData00)
+
+
 
 	} else if slicesEqual(previousResponse, twojFaultsResponse) { twojSendCommand(sp, twojRequestData00)
 
@@ -163,6 +194,7 @@ func twojSendNextCommand(sp sers.SerialPort, previousResponse []byte) {
 	// 	globalAlert = "ECU reports faults cleared"
 
 	} else { // fall back to ping
+		fmt.Println("Falling back to ping command")
 		twojSendCommand(sp, twojPingCommand)
 	}
 
@@ -278,6 +310,31 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 			buffer = buffer[(len(twojClearFaultsCommand)+2):]
 			continue
 		}
+		if slicesEqual(actualData, twojLearnImmoCommand) {
+			// fmt.Println("Got our echo")
+			buffer = buffer[(len(twojLearnImmoCommand)+2):]
+			continue
+		}
+		if slicesEqual(actualData, twojRead722Command) {
+			// fmt.Println("Got our echo")
+			buffer = buffer[(len(twojRead722Command)+2):]
+			continue
+		}
+		if slicesEqual(actualData, twojReadRomCommand) {
+			// fmt.Println("Got our echo")
+			buffer = buffer[(len(twojReadRomCommand)+2):]
+			twojReadRomInProgress = true // we started a rom dump so don't go off doing other work until finished
+			twojReadRomCommandNextAddress = 0x100000 // reset it
+			continue
+		}
+		if slicesEqual(actualData, twojReadRomCommandContinued) {
+			// fmt.Println("Got our echo")
+			buffer = buffer[(len(twojReadRomCommandContinued)+2):]
+			continue
+		}
+
+
+
 		if slicesEqual(actualData, twojRequestFaultsCommand) {
 			// fmt.Println("Got our request faults echo")
 			buffer = buffer[(len(twojRequestFaultsCommand)+2):]
