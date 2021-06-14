@@ -9,8 +9,23 @@ import (
 )
 
 var (
+
+	lastSentCommand = []byte {}
+
 	twojInitCommand = []byte {0x81, 0x13, 0xF7, 0x81, 0x0C}
+
 	twojStartDiagnostic = []byte {0x10, 0xA0}
+	/*
+	related/alternates
+	default seems to be 4
+	just 0x82 sets it to 4 or 5
+	0x10 0x80 sets it to 2 or 4
+	0x10 0x90 sets it to 0 or 4
+	0x10 0xa0 sets it to 1 or 4
+	just 0x13 sets it to 3 or 4
+
+	*/
+
 	twojRequestSeed = []byte {0x27, 0x01}
 	twojSendKey = []byte {0x27, 0x02}
 	twojPingCommand = []byte {0x3E}
@@ -19,8 +34,8 @@ var (
 	twojFaultsClearedResponse = []byte {0x71, 0xCB}
 
 
-	twojLearnImmoCommand = []byte {0x31, 0xD1} // doesn't work
-	twojResponseLearnImmoCommand = []byte {0x71, 0xD1}
+	twojLearnImmoCommand = []byte {0x31, 0xD0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00} // doesn't work when it was 31,d1, trying 31d0 now, needs more auth or something
+	twojResponseLearnImmoCommand = []byte {0x71, 0xD0}
 
 	twojRead722Command = []byte {0x23, 0x00, 0x07, 0x22, 0x01}
 
@@ -34,6 +49,14 @@ var (
 	twojReadRomFilename = "rom-dump.bin"
 
 	twojRequestService13 = []byte {0x13}
+
+	/*
+	serivce 0x30
+	most seem to just set some ram values
+
+	*/
+
+	twojRequestService31_d5 = []byte {0x31, 0xd5} // data from start of cal
 
 
 	// service 0x33 requests - gather secretive data, either done by index or the first value
@@ -53,6 +76,13 @@ var (
 	twojRequestService33_c1 = []byte {0x33, 0xc1} // data from 509, 386, 387
 	twojRequestService33_d7 = []byte {0x33, 0xd7} // checks multiple bit fields to see if clear, returns OK if so, 7F otherwise
 
+
+/*
+Service 0x31
+
+d6 - swap to normal calibration
+d7 - swap to NOSELECT calibration and set immo code to 0xffff (disable it?)
+*/
 
 
 	twojRequestData00 = []byte {0x21, 0x00}
@@ -118,6 +148,8 @@ var (
 		"readrom": twojReadRomCommand,
 		"service13": twojRequestService13,
 
+		"service31_d5": twojRequestService31_d5,
+
 		"service33_d5": twojRequestService33_d5,
 	  "service33_c0": twojRequestService33_c0,
 	  "service33_c8": twojRequestService33_c8,
@@ -145,10 +177,12 @@ func twojSendCommand(sp sers.SerialPort, command []byte) {
   checksum = checksum & 0xFF
 	finalCommand = append(finalCommand, byte(checksum))
 	// fmt.Printf("sending %d bytes \n%s", len(finalCommand), hex.Dump(finalCommand))
+	lastSentCommand = finalCommand
 	sp.Write(finalCommand)
 }
 
 
+// this is the logic of what to do next based on what is received
 func twojSendNextCommand(sp sers.SerialPort, previousResponse []byte) {
 
 	if slicesEqual(previousResponse, twojReadRomCommandContinued) {
@@ -318,6 +352,12 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 		// fmt.Printf("actual data: got %d bytes \n%s", len(actualData), hex.Dump(actualData))
 
 		// our echos
+		// if slicesEqual(actualData, lastSentCommand) {
+		// 	// fmt.Println("Got our ping echo")
+		// 	buffer = buffer[(len(lastSentCommand)+2):] // length and checksum are added to the "normal" command
+		// 	continue
+		// }
+
 		if slicesEqual(actualData, twojPingCommand) {
 			// fmt.Println("Got our ping echo")
 			buffer = buffer[(len(twojPingCommand)+2):]
@@ -348,6 +388,13 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 			buffer = buffer[(len(twojLearnImmoCommand)+2):]
 			continue
 		}
+
+		if slicesEqual(actualData, twojRequestService31_d5) {
+			// fmt.Println("Got our echo")
+			buffer = buffer[(len(twojRequestService31_d5)+2):]
+			continue
+		}
+
 
 		if slicesEqual(actualData, twojRequestService33_d5) {
 			// fmt.Println("Got our echo")
