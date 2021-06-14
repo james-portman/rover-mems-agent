@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 )
 // todo - all the point values are being lost
 
@@ -268,8 +269,18 @@ func twojParseResponse(actualData []byte) {
 		endAddress := 0x120000
 		total := endAddress - startAddress
 		progress_bytes := twojReadRomCommandNextAddress - startAddress
+		remaining_bytes := total - progress_bytes
 		progress_percent := int(float32(progress_bytes) / float32(total) * 100)
-		fmt.Printf("ROM dump in progress: Address %x (%x-%x) = %v%%\n", twojReadRomCommandNextAddress, startAddress, endAddress, progress_percent)
+
+		now := time.Now().Unix()
+		timeTaken := now - twojReadRomStartedTime
+		bytesPerSec := int(float32(progress_bytes) / float32(timeTaken))
+		remainingSeconds := int(float32(remaining_bytes) / float32(bytesPerSec))
+		if timeTaken == 0 || bytesPerSec == 0 {
+			remainingSeconds = 999
+		}
+
+		fmt.Printf("ROM dump in progress: %v bytes/%v @%vbytes/s, %v%%, %v seconds remaining\n", progress_bytes, total, bytesPerSec, progress_percent, remainingSeconds)
 
 		twojReadRomCommandNextAddress += 32
 		// TODO: check end address wouldn't go past 11ffff

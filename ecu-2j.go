@@ -47,6 +47,7 @@ var (
 	twojReadRomCommandContinued = []byte {0x23, 0x10, 0x00, 0x00, 32} // used to loop with new addresses
 	twojReadRomInProgress = false
 	twojReadRomFilename = "rom-dump.bin"
+	twojReadRomStartedTime = time.Now().Unix() // placeholder
 
 	twojRequestService13 = []byte {0x13}
 
@@ -356,8 +357,10 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 		if slicesEqual(actualData, twojReadRomCommand) {
 			// fmt.Println("Got our echo")
 			buffer = buffer[(len(twojReadRomCommand)+2):]
+			// move this to the parse function?
 			twojReadRomInProgress = true // we started a rom dump so don't go off doing other work until finished
 			twojReadRomCommandNextAddress = 0x100000 // reset it
+			twojReadRomStartedTime = time.Now().Unix()
 			continue
 		}
 
