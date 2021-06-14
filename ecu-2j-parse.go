@@ -201,6 +201,7 @@ func twojParseResponse(actualData []byte) []byte {
 		globalDataOutput["rpm_error"] = float32(rpmError)
 		return twojResponseData21
 	}
+	// Mini MPI refuses 0x21 0x25: (missing in the ECU code)
 	if slicesEqual(actualData[0:2], twojResponseData25) {
 		fmt.Println("got data packet 25")
 		camPercent := int(actualData[2]) << 8
