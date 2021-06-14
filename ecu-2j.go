@@ -10,7 +10,7 @@ import (
 
 var (
 
-	lastSentCommand = []byte {}
+	twojLastSentCommand = []byte {}
 
 	twojInitCommand = []byte {0x81, 0x13, 0xF7, 0x81, 0x0C}
 
@@ -177,7 +177,7 @@ func twojSendCommand(sp sers.SerialPort, command []byte) {
   checksum = checksum & 0xFF
 	finalCommand = append(finalCommand, byte(checksum))
 	// fmt.Printf("sending %d bytes \n%s", len(finalCommand), hex.Dump(finalCommand))
-	lastSentCommand = finalCommand
+	twojLastSentCommand = finalCommand
 	sp.Write(finalCommand)
 }
 
@@ -210,7 +210,7 @@ func twojSendNextCommand(sp sers.SerialPort, previousResponse []byte) {
 	} else if slicesEqual(previousResponse, twojStartDiagResponse) {
 		twojSendCommand(sp, twojRequestSeed)
 
-	} else if slicesEqual(previousResponse, twojSeedResponse) {
+	} else if slicesEqual(previousResponse[0:2], twojSeedResponse) {
 		command := append(twojSendKey, byte(twojKey >> 8))
 		command = append(command, byte(twojKey & 0xFF))
 		twojSendCommand(sp, command)
@@ -227,38 +227,29 @@ func twojSendNextCommand(sp sers.SerialPort, previousResponse []byte) {
 	} else if slicesEqual(previousResponse, twojResponseLearnImmoCommand) {
 		twojSendCommand(sp, twojRequestData00)
 
+	} else if slicesEqual(previousResponse[0:2], twojFaultsResponse[0:2]) { twojSendCommand(sp, twojRequestData00)
 
-
-	} else if slicesEqual(previousResponse, twojFaultsResponse) { twojSendCommand(sp, twojRequestData00)
-
-	} else if slicesEqual(previousResponse, twojResponseData00) { twojSendCommand(sp, twojRequestData01)
-	} else if slicesEqual(previousResponse, twojResponseData01) { twojSendCommand(sp, twojRequestData02)
-	} else if slicesEqual(previousResponse, twojResponseData02) { twojSendCommand(sp, twojRequestData03)
-	} else if slicesEqual(previousResponse, twojResponseData03) { twojSendCommand(sp, twojRequestData05)
-	} else if slicesEqual(previousResponse, twojResponseData05) { twojSendCommand(sp, twojRequestData06)
-	} else if slicesEqual(previousResponse, twojResponseData06) { twojSendCommand(sp, twojRequestData07)
-	} else if slicesEqual(previousResponse, twojResponseData07) { twojSendCommand(sp, twojRequestData08)
-	} else if slicesEqual(previousResponse, twojResponseData08) { twojSendCommand(sp, twojRequestData09)
-	} else if slicesEqual(previousResponse, twojResponseData09) { twojSendCommand(sp, twojRequestData0A)
-	} else if slicesEqual(previousResponse, twojResponseData0A) { twojSendCommand(sp, twojRequestData0B)
-	} else if slicesEqual(previousResponse, twojResponseData0B) { twojSendCommand(sp, twojRequestData0C)
-	} else if slicesEqual(previousResponse, twojResponseData0C) { twojSendCommand(sp, twojRequestData0D)
-	} else if slicesEqual(previousResponse, twojResponseData0D) { twojSendCommand(sp, twojRequestData0F)
-	} else if slicesEqual(previousResponse, twojResponseData0F) { twojSendCommand(sp, twojRequestData10)
-	} else if slicesEqual(previousResponse, twojResponseData10) { twojSendCommand(sp, twojRequestData11)
-	} else if slicesEqual(previousResponse, twojResponseData11) { twojSendCommand(sp, twojRequestData12)
-	} else if slicesEqual(previousResponse, twojResponseData12) { twojSendCommand(sp, twojRequestData13)
-	} else if slicesEqual(previousResponse, twojResponseData13) { twojSendCommand(sp, twojRequestData21)
-	} else if slicesEqual(previousResponse, twojResponseData21) { twojSendCommand(sp, twojRequestData25)
-	} else if slicesEqual(previousResponse, twojResponseData25) { twojSendCommand(sp, twojRequestData3A)
-	} else if slicesEqual(previousResponse, twojResponseData3A) { twojSendCommand(sp, twojPingCommand)
-
-	// } else if slicesEqual(previousResponse, twojWokeResponse) || slicesEqual(previousResponse, twojFaultsResponse) {
-	// 	sp.Write(twojPingCommand)
-	//
-	// } else if slicesEqual(previousResponse, twojFaultsClearedResponse) {
-	// 	sp.Write(twojRequestFaultsCommand)
-	// 	globalAlert = "ECU reports faults cleared"
+	} else if slicesEqual(previousResponse[0:2], twojResponseData00) { twojSendCommand(sp, twojRequestData01)
+	} else if slicesEqual(previousResponse[0:2], twojResponseData01) { twojSendCommand(sp, twojRequestData02)
+	} else if slicesEqual(previousResponse[0:2], twojResponseData02) { twojSendCommand(sp, twojRequestData03)
+	} else if slicesEqual(previousResponse[0:2], twojResponseData03) { twojSendCommand(sp, twojRequestData05)
+	} else if slicesEqual(previousResponse[0:2], twojResponseData05) { twojSendCommand(sp, twojRequestData06)
+	} else if slicesEqual(previousResponse[0:2], twojResponseData06) { twojSendCommand(sp, twojRequestData07)
+	} else if slicesEqual(previousResponse[0:2], twojResponseData07) { twojSendCommand(sp, twojRequestData08)
+	} else if slicesEqual(previousResponse[0:2], twojResponseData08) { twojSendCommand(sp, twojRequestData09)
+	} else if slicesEqual(previousResponse[0:2], twojResponseData09) { twojSendCommand(sp, twojRequestData0A)
+	} else if slicesEqual(previousResponse[0:2], twojResponseData0A) { twojSendCommand(sp, twojRequestData0B)
+	} else if slicesEqual(previousResponse[0:2], twojResponseData0B) { twojSendCommand(sp, twojRequestData0C)
+	} else if slicesEqual(previousResponse[0:2], twojResponseData0C) { twojSendCommand(sp, twojRequestData0D)
+	} else if slicesEqual(previousResponse[0:2], twojResponseData0D) { twojSendCommand(sp, twojRequestData0F)
+	} else if slicesEqual(previousResponse[0:2], twojResponseData0F) { twojSendCommand(sp, twojRequestData10)
+	} else if slicesEqual(previousResponse[0:2], twojResponseData10) { twojSendCommand(sp, twojRequestData11)
+	} else if slicesEqual(previousResponse[0:2], twojResponseData11) { twojSendCommand(sp, twojRequestData12)
+	} else if slicesEqual(previousResponse[0:2], twojResponseData12) { twojSendCommand(sp, twojRequestData13)
+	} else if slicesEqual(previousResponse[0:2], twojResponseData13) { twojSendCommand(sp, twojRequestData21)
+	} else if slicesEqual(previousResponse[0:2], twojResponseData21) { twojSendCommand(sp, twojRequestData25)
+	} else if slicesEqual(previousResponse[0:2], twojResponseData25) { twojSendCommand(sp, twojRequestData3A)
+	} else if slicesEqual(previousResponse[0:2], twojResponseData3A) { twojSendCommand(sp, twojPingCommand)
 
 	} else { // fall back to ping
 		fmt.Println("Falling back to ping command")
@@ -348,99 +339,12 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 
 		// TODO: check checksum ?
 
-		actualData := buffer[1:int(buffer[0])+1]
+		actualData := buffer[1:int(buffer[0])+1] // doesn't include len or checksum
+		fullPacket := buffer[0:int(buffer[0])+2]
 		// fmt.Printf("actual data: got %d bytes \n%s", len(actualData), hex.Dump(actualData))
+		// fmt.Printf("fullPacket: got %d bytes \n%s", len(fullPacket), hex.Dump(fullPacket))
 
-		// our echos
-		// if slicesEqual(actualData, lastSentCommand) {
-		// 	// fmt.Println("Got our ping echo")
-		// 	buffer = buffer[(len(lastSentCommand)+2):] // length and checksum are added to the "normal" command
-		// 	continue
-		// }
-
-		if slicesEqual(actualData, twojPingCommand) {
-			// fmt.Println("Got our ping echo")
-			buffer = buffer[(len(twojPingCommand)+2):]
-			continue
-		}
-		if slicesEqual(actualData, twojStartDiagnostic) {
-			// fmt.Println("Got our start diag echo")
-			buffer = buffer[(len(twojStartDiagnostic)+2):]
-			continue
-		}
-		if slicesEqual(actualData, twojRequestSeed) {
-			// fmt.Println("Got our seed req echo")
-			buffer = buffer[(len(twojRequestSeed)+2):]
-			continue
-		}
-		if slicesEqual(actualData[0:2], twojSendKey) {
-			// fmt.Println("Got our key send echo")
-			buffer = buffer[(len(twojSendKey)+2+2):] // extra 2 for key
-			continue
-		}
-		if slicesEqual(actualData, twojClearFaultsCommand) {
-			// fmt.Println("Got our clear faults echo")
-			buffer = buffer[(len(twojClearFaultsCommand)+2):]
-			continue
-		}
-		if slicesEqual(actualData, twojLearnImmoCommand) {
-			// fmt.Println("Got our echo")
-			buffer = buffer[(len(twojLearnImmoCommand)+2):]
-			continue
-		}
-
-		if slicesEqual(actualData, twojRequestService31_d5) {
-			// fmt.Println("Got our echo")
-			buffer = buffer[(len(twojRequestService31_d5)+2):]
-			continue
-		}
-
-
-		if slicesEqual(actualData, twojRequestService33_d5) {
-			// fmt.Println("Got our echo")
-			buffer = buffer[(len(twojRequestService33_d5)+2):]
-			continue
-		}
-		if slicesEqual(actualData, twojRequestService33_c0) {
-			buffer = buffer[(len(twojRequestService33_c0)+2):]
-			continue
-		}
-
-		if slicesEqual(actualData, twojRequestService33_c8) {
-			buffer = buffer[(len(twojRequestService33_c8)+2):]
-			continue
-		}
-
-		if slicesEqual(actualData, twojRequestService33_d2) {
-			buffer = buffer[(len(twojRequestService33_d2)+2):]
-			continue
-		}
-
-		if slicesEqual(actualData, twojRequestService33_d4) {
-			buffer = buffer[(len(twojRequestService33_d4)+2):]
-			continue
-		}
-
-		if slicesEqual(actualData, twojRequestService33_da) {
-			buffer = buffer[(len(twojRequestService33_da)+2):]
-			continue
-		}
-
-		if slicesEqual(actualData, twojRequestService33_c1) {
-			buffer = buffer[(len(twojRequestService33_c1)+2):]
-			continue
-		}
-
-		if slicesEqual(actualData, twojRequestService33_d7) {
-			buffer = buffer[(len(twojRequestService33_d7)+2):]
-			continue
-		}
-
-		if slicesEqual(actualData, twojRead722Command) {
-			// fmt.Println("Got our echo")
-			buffer = buffer[(len(twojRead722Command)+2):]
-			continue
-		}
+		// our echo
 		if slicesEqual(actualData, twojReadRomCommand) {
 			// fmt.Println("Got our echo")
 			buffer = buffer[(len(twojReadRomCommand)+2):]
@@ -448,54 +352,16 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 			twojReadRomCommandNextAddress = 0x100000 // reset it
 			continue
 		}
-		if slicesEqual(actualData, twojReadRomCommandContinued) {
-			// fmt.Println("Got our echo")
-			buffer = buffer[(len(twojReadRomCommandContinued)+2):]
-			continue
-		}
-		if slicesEqual(actualData, twojRequestService13) {
-			// fmt.Println("Got our echo")
-			buffer = buffer[(len(twojRequestService13)+2):]
+
+		if slicesEqual(fullPacket, twojLastSentCommand) {
+			buffer = buffer[(len(twojLastSentCommand)):]
 			continue
 		}
 
-
-		if slicesEqual(actualData, twojRequestFaultsCommand) {
-			// fmt.Println("Got our request faults echo")
-			buffer = buffer[(len(twojRequestFaultsCommand)+2):]
-			continue
-		}
-		if slicesEqual(actualData, twojRequestData00) { buffer = buffer[4:]; continue }
-		if slicesEqual(actualData, twojRequestData01) { buffer = buffer[4:]; continue }
-		if slicesEqual(actualData, twojRequestData02) { buffer = buffer[4:]; continue }
-		if slicesEqual(actualData, twojRequestData03) { buffer = buffer[4:]; continue }
-		if slicesEqual(actualData, twojRequestData05) { buffer = buffer[4:]; continue }
-		if slicesEqual(actualData, twojRequestData06) { buffer = buffer[4:]; continue }
-		if slicesEqual(actualData, twojRequestData07) { buffer = buffer[4:]; continue }
-		if slicesEqual(actualData, twojRequestData08) { buffer = buffer[4:]; continue }
-		if slicesEqual(actualData, twojRequestData09) { buffer = buffer[4:]; continue }
-		if slicesEqual(actualData, twojRequestData0A) { buffer = buffer[4:]; continue }
-		if slicesEqual(actualData, twojRequestData0B) { buffer = buffer[4:]; continue }
-		if slicesEqual(actualData, twojRequestData0C) { buffer = buffer[4:]; continue }
-		if slicesEqual(actualData, twojRequestData0D) { buffer = buffer[4:]; continue }
-		if slicesEqual(actualData, twojRequestData0F) { buffer = buffer[4:]; continue }
-		if slicesEqual(actualData, twojRequestData10) { buffer = buffer[4:]; continue }
-		if slicesEqual(actualData, twojRequestData11) { buffer = buffer[4:]; continue }
-		if slicesEqual(actualData, twojRequestData12) { buffer = buffer[4:]; continue }
-		if slicesEqual(actualData, twojRequestData13) { buffer = buffer[4:]; continue }
-		if slicesEqual(actualData, twojRequestData21) { buffer = buffer[4:]; continue }
-		if slicesEqual(actualData, twojRequestData25) { buffer = buffer[4:]; continue }
-		if slicesEqual(actualData, twojRequestData3A) { buffer = buffer[4:]; continue }
-
-
-
-		nextCommandToRun := twojParseResponse(actualData)
+		twojParseResponse(actualData)
 		buffer = nil
 		time.Sleep(50 * time.Millisecond)
-		twojSendNextCommand(sp, nextCommandToRun)
-
-
-
+		twojSendNextCommand(sp, actualData)
 
 	}
 	if readLoops >= readLoopsLimit {

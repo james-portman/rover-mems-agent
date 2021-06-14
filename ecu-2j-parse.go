@@ -6,7 +6,7 @@ import (
 )
 // todo - all the point values are being lost
 
-func twojParseResponse(actualData []byte) []byte {
+func twojParseResponse(actualData []byte) {
 
   globalDataOutputLock.Lock()
   defer globalDataOutputLock.Unlock()
@@ -14,11 +14,11 @@ func twojParseResponse(actualData []byte) []byte {
 	if slicesEqual(actualData, twojWokeResponse) {
 		fmt.Println("< ECU woke up")
 		globalConnected = true
-		return twojWokeResponse
+		return
 	}
 	if slicesEqual(actualData, twojStartDiagResponse) {
 		fmt.Println("< Diag mode accepted")
-		return twojStartDiagResponse
+		return
 	}
 	if slicesEqual(actualData[0:2], twojSeedResponse) {
 		fmt.Println("< seed")
@@ -26,38 +26,38 @@ func twojParseResponse(actualData []byte) []byte {
 		twojSeed += int(actualData[3])
 		// do key generation
 		twojKey = generateKey(twojSeed)
-		return twojSeedResponse
+		return
 	}
 	if slicesEqual(actualData, twojKeyAcceptResponse) {
 		fmt.Println("< Key accepted")
-		return twojKeyAcceptResponse
+		return
 	}
 	if slicesEqual(actualData, twojPongResponse) {
 		fmt.Println("< PONG")
-		return twojPongResponse
+		return
 	}
 	if slicesEqual(actualData, twojFaultsClearedResponse) {
 		fmt.Println("< FAULTS CLEARED")
 		globalAlert = "ECU reports faults cleared"
-		return twojFaultsClearedResponse
+		return
 	}
 
 	if slicesEqual(actualData, twojResponseLearnImmoCommand) {
 		fmt.Println("< IMMO CODE LEARN")
 		globalAlert = "ECU reports set to learn new immo code"
-		return twojResponseLearnImmoCommand
+		return
 	}
 
 
 	if slicesEqual(actualData[0:2], twojFaultsResponse) {
 		fmt.Println("< Faults")
 		twojParseFaults(actualData)
-		return twojFaultsResponse
+		return
 	}
 	if slicesEqual(actualData[0:2], twojResponseData00) {
 		fmt.Println("got data packet 00")
 		// don't care?
-		return twojResponseData00
+		return
 	}
 	if slicesEqual(actualData[0:2], twojResponseData01) {
 		fmt.Println("got data packet 01")
@@ -66,7 +66,7 @@ func twojParseResponse(actualData []byte) []byte {
 		coolantFloat := float32(coolant) - 2732
 		coolantFloat /= 10
 		globalDataOutput["coolant_temp"] = coolantFloat
-		return twojResponseData01
+		return
 	}
 	if slicesEqual(actualData[0:2], twojResponseData02) {
 		fmt.Println("got data packet 02")
@@ -75,7 +75,7 @@ func twojParseResponse(actualData []byte) []byte {
 		oiltempFloat := float32(oiltemp) - 2732
 		oiltempFloat /= 10
 		globalDataOutput["oil_temp"] = oiltempFloat
-		return twojResponseData02
+		return
 	}
 	if slicesEqual(actualData[0:2], twojResponseData03) {
 		fmt.Println("got data packet 03")
@@ -84,26 +84,26 @@ func twojParseResponse(actualData []byte) []byte {
 		iatFloat := float32(iat) - 2732
 		iatFloat /= 10
 		globalDataOutput["intake_air_temp"] = iatFloat
-		return twojResponseData03
+		return
 	}
 	if slicesEqual(actualData[0:2], twojResponseData05) {
 		fmt.Println("got data packet 05")
 		fueltemp := int(actualData[2]) << 8
 		fueltemp += int(actualData[3])
 		globalDataOutput["fuel_temp"] = float32(fueltemp)
-		return twojResponseData05
+		return
 	}
 	if slicesEqual(actualData[0:2], twojResponseData06) {
 		fmt.Println("got data packet 06")
 		// don't care?
-		return twojResponseData06
+		return
 	}
 	if slicesEqual(actualData[0:2], twojResponseData07) {
 		fmt.Println("got data packet 07")
 		mapkpa := int(actualData[2]) << 8
 		mapkpa += int(actualData[3])
 		globalDataOutput["map_sensor_kpa"] = float32(mapkpa)/100
-		return twojResponseData07
+		return
 	}
 	if slicesEqual(actualData[0:2], twojResponseData08) {
 		fmt.Println("got data packet 08")
@@ -111,14 +111,14 @@ func twojParseResponse(actualData []byte) []byte {
 		tps += int(actualData[3])
 		tpsFloat := float32(tps) / 100
 		globalDataOutput["tps_degrees"] = tpsFloat
-		return twojResponseData08
+		return
 	}
 	if slicesEqual(actualData[0:2], twojResponseData09) {
 		fmt.Println("got data packet 09")
 		rpm := int(actualData[2]) << 8
 		rpm += int(actualData[3])
 		globalDataOutput["rpm"] = float32(rpm)
-		return twojResponseData09
+		return
 	}
 	if slicesEqual(actualData[0:2], twojResponseData0A) {
 		fmt.Println("got data packet 0A")
@@ -131,13 +131,13 @@ func twojParseResponse(actualData []byte) []byte {
 		globalDataOutput["fuelling_feedback_percent"] = feedbackFloat
 		globalDataOutput["o2_mv"] = float32(o2mv)
 		globalDataOutput["estimate_air_fuel"] = airFuel
-		return twojResponseData0A
+		return
 	}
 	if slicesEqual(actualData[0:2], twojResponseData0B) {
 		fmt.Println("got data packet 0B")
 		globalDataOutput["coil_1_charge_time"] = float32(actualData[2]) / 1000
 		globalDataOutput["coil_2_charge_time"] = float32(actualData[3]) / 1000
-		return twojResponseData0B
+		return
 	}
 	if slicesEqual(actualData[0:2], twojResponseData0C) {
 		fmt.Println("got data packet 0C")
@@ -145,19 +145,19 @@ func twojParseResponse(actualData []byte) []byte {
 		globalDataOutput["injector_2_pw"] = float32(actualData[3])
 		globalDataOutput["injector_3_pw"] = float32(actualData[4])
 		globalDataOutput["injector_4_pw"] = float32(actualData[5])
-		return twojResponseData0C
+		return
 	}
 	if slicesEqual(actualData[0:2], twojResponseData0D) {
 		fmt.Println("got data packet 0D")
 		globalDataOutput["vehicle_speed"] = float32(actualData[2])
-		return twojResponseData0D
+		return
 	}
 	if slicesEqual(actualData[0:2], twojResponseData0F) {
 		fmt.Println("got data packet 0F")
 		globalDataOutput["throttle_switch"] = float32(int(actualData[2]) & 1) // 0b00000001
 		globalDataOutput["ignition"] = float32((int(actualData[2]) >> 1) & 1) // 0b00000010
 		globalDataOutput["ac_button"] = float32((int(actualData[2]) >> 3) & 1) // 0b00001000
-		return twojResponseData0F
+		return
 	}
 	if slicesEqual(actualData[0:2], twojResponseData10) {
 		fmt.Println("got data packet 10")
@@ -165,7 +165,7 @@ func twojParseResponse(actualData []byte) []byte {
 		battery += int(actualData[5])
 		batteryFloat := float32(battery) / 1000
 		globalDataOutput["battery_voltage"] = batteryFloat
-		return twojResponseData10
+		return
 	}
 	if slicesEqual(actualData[0:2], twojResponseData11) {
 		fmt.Println("got data packet 11")
@@ -176,7 +176,7 @@ func twojParseResponse(actualData []byte) []byte {
 		secondaryTriggerSync := (actualData[2] >> 1) & 1 //0b00000010
 		globalDataOutput["primary_trigger_sync"] = float32(1 - primaryTriggerSync)
 		globalDataOutput["secondary_trigger_sync"] = float32(1 - secondaryTriggerSync)
-		return twojResponseData11
+		return
 	}
 	if slicesEqual(actualData[0:2], twojResponseData12) {
 		fmt.Println("got data packet 12")
@@ -184,12 +184,12 @@ func twojParseResponse(actualData []byte) []byte {
 		idleValvePos += int(actualData[3])
 		idleValveFloat := float32(idleValvePos) / 2
 		globalDataOutput["idle_valve_pos"] = idleValveFloat
-		return twojResponseData12
+		return
 	}
 	if slicesEqual(actualData[0:2], twojResponseData13) {
 		fmt.Println("got data packet 13")
 		globalDataOutput["closed_loop"] = float32(actualData[2] & 0b00000001)
-		return twojResponseData13
+		return
 	}
 	if slicesEqual(actualData[0:2], twojResponseData21) {
 		fmt.Println("got data packet 21")
@@ -199,7 +199,7 @@ func twojParseResponse(actualData []byte) []byte {
 			rpmError -= 65535
 		}
 		globalDataOutput["rpm_error"] = float32(rpmError)
-		return twojResponseData21
+		return
 	}
 	// Mini MPI refuses 0x21 0x25: (missing in the ECU code)
 	if slicesEqual(actualData[0:2], twojResponseData25) {
@@ -207,7 +207,7 @@ func twojParseResponse(actualData []byte) []byte {
 		camPercent := int(actualData[2]) << 8
 		camPercent += int(actualData[3])
 		globalDataOutput["cam_percent"] = float32(camPercent)
-		return twojResponseData25
+		return
 	}
 	if slicesEqual(actualData[0:2], twojResponseData3A) {
 		fmt.Println("got data packet 3A")
@@ -218,7 +218,7 @@ func twojParseResponse(actualData []byte) []byte {
 		idleAdjusterRpm += int(actualData[5])
 		globalDataOutput["idle_timing_offset"] = idleTimingOffsetFloat
 		globalDataOutput["idle_adjuster_rpm"] = float32(idleAdjusterRpm)
-		return twojResponseData3A
+		return
 	}
 
 	// if we get here then something is wrong with the data
@@ -237,11 +237,10 @@ func twojParseResponse(actualData []byte) []byte {
 		fmt.Println("")
 		// TODO: print out nicely
 		// TODO: blacklist commands if ECU keeps refusing? e.g. Mini MPI refuses 0x2110
-		return twojPongResponse
+		return
 	}
 
 	if (actualData[0] == 0x63) {
-		fmt.Println("Read data by address returned data:")
 		// fmt.Println(actualData)
 		fmt.Print("Hex: ")
 		// start at 1, ignoring the command reply
@@ -252,7 +251,7 @@ func twojParseResponse(actualData []byte) []byte {
 
 		if !twojReadRomInProgress {
 			fmt.Println("Not running a ROM dump so going back to ping/data collection")
-			return twojPongResponse
+			return
 		}
 
 		f, err := os.OpenFile(twojReadRomFilename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
@@ -277,15 +276,16 @@ func twojParseResponse(actualData []byte) []byte {
 		if twojReadRomCommandNextAddress >= 0x120000 {
 			fmt.Println("Finished ROM dump!")
 			twojReadRomInProgress = false
-			return twojPongResponse
+			return
 		}
+
 		// fmt.Println("More data still to collect, updating command with new address")
 		twojReadRomCommandContinued[1] = byte( (twojReadRomCommandNextAddress >> 16) & 0xFF )
 		twojReadRomCommandContinued[2] = byte( (twojReadRomCommandNextAddress >> 8) & 0xFF )
 		twojReadRomCommandContinued[3] = byte( (twojReadRomCommandNextAddress >> 0) & 0xFF )
 		// fmt.Println("Returning new command")
 		// fmt.Printf("%x\n",twojReadRomCommandContinued)
-		return twojReadRomCommandContinued
+		return
 
 	}
 
@@ -296,6 +296,6 @@ func twojParseResponse(actualData []byte) []byte {
 		fmt.Printf(" %x", actualData[x])
 	}
 	fmt.Println("")
+	return
 
-  return twojPongResponse
 }
