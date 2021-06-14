@@ -185,11 +185,19 @@ func twojSendCommand(sp sers.SerialPort, command []byte) {
 // this is the logic of what to do next based on what is received
 func twojSendNextCommand(sp sers.SerialPort, previousResponse []byte) {
 
-	if slicesEqual(previousResponse, twojReadRomCommandContinued) {
-		// fmt.Println("Need to keep doing ROM dump")
-		twojSendCommand(sp, twojReadRomCommandContinued)
-		return
+	if twojReadRomInProgress {
+		if twojReadRomCommandNextAddress >= 0x120000 {
+			twojReadRomInProgress = false
+			fmt.Println("Finished ROM dump!")
+			fmt.Println("Going back to ping")
+			twojSendCommand(sp, twojPingCommand)
+			return
+		} else {
+			twojSendCommand(sp, twojReadRomCommandContinued)
+			return
+		}
 	}
+
 
 	if globalUserCommand != "" {
 		command, ok := twojUserCommands[globalUserCommand];

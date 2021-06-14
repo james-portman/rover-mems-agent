@@ -242,12 +242,14 @@ func twojParseResponse(actualData []byte) {
 
 	if (actualData[0] == 0x63) {
 		// fmt.Println(actualData)
-		fmt.Print("Hex: ")
-		// start at 1, ignoring the command reply
-		for x := 1; x < len(actualData); x++ {
-			fmt.Printf(" %x", actualData[x])
+		if !twojReadRomInProgress {
+			fmt.Print("Hex: ")
+			// start at 1, ignoring the command reply
+			for x := 1; x < len(actualData); x++ {
+				fmt.Printf(" %x", actualData[x])
+			}
+			fmt.Println("")
 		}
-		fmt.Println("")
 
 		if !twojReadRomInProgress {
 			fmt.Println("Not running a ROM dump so going back to ping/data collection")
@@ -266,27 +268,16 @@ func twojParseResponse(actualData []byte) {
 		endAddress := 0x120000
 		total := endAddress - startAddress
 		progress_bytes := twojReadRomCommandNextAddress - startAddress
-		progress_percent := int(progress_bytes / total * 100)
-		fmt.Printf("ROM dump progress %s\n", progress_percent)
+		progress_percent := int(float32(progress_bytes) / float32(total) * 100)
+		fmt.Printf("ROM dump in progress: Address %x (%x-%x) = %v%%\n", twojReadRomCommandNextAddress, startAddress, endAddress, progress_percent)
 
-		// fmt.Println("ROM dump is in progress")
-		// go to next address
 		twojReadRomCommandNextAddress += 32
-		// fmt.Println("next address set (+32)")
-		if twojReadRomCommandNextAddress >= 0x120000 {
-			fmt.Println("Finished ROM dump!")
-			twojReadRomInProgress = false
-			return
-		}
+		// TODO: check end address wouldn't go past 11ffff
 
-		// fmt.Println("More data still to collect, updating command with new address")
 		twojReadRomCommandContinued[1] = byte( (twojReadRomCommandNextAddress >> 16) & 0xFF )
 		twojReadRomCommandContinued[2] = byte( (twojReadRomCommandNextAddress >> 8) & 0xFF )
 		twojReadRomCommandContinued[3] = byte( (twojReadRomCommandNextAddress >> 0) & 0xFF )
-		// fmt.Println("Returning new command")
-		// fmt.Printf("%x\n",twojReadRomCommandContinued)
 		return
-
 	}
 
 	fmt.Println("Unknown data received in ecu-2j-parse.go")
