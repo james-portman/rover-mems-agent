@@ -280,7 +280,9 @@ func twojParseResponse(actualData []byte) {
 			remainingSeconds = 999
 		}
 
-		fmt.Printf("ROM dump in progress: %v bytes/%v @%vbytes/s, %v%%, %v seconds remaining\n", progress_bytes, total, bytesPerSec, progress_percent, remainingSeconds)
+		if twojReadRomCommandNextAddress % 10 == 0 {
+			fmt.Printf("ROM dump in progress: %v bytes/%v @%vbytes/s, %v%%, %v seconds remaining\n", progress_bytes, total, bytesPerSec, progress_percent, remainingSeconds)
+		}
 
 		twojReadRomCommandNextAddress += 32
 		// TODO: check end address wouldn't go past 11ffff
