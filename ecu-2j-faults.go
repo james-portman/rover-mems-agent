@@ -69,6 +69,7 @@ func twojParseFaults(buffer []byte) {
 	}
 
 	if len(buffer) >= 27 {
+	  // MPI ram 513
 	  if ((buffer[26] >> 0) & 1) > 0 { faults = append(faults, "Road speed sensor (present)") }
 	  if ((buffer[26] >> 1) & 1) > 0 { faults = append(faults, "Comm. with AT (present)") }
 	  // bit 2 - not set in code
