@@ -58,18 +58,18 @@ MPI mini fault ram locations
 	
 	// 14h 4h
 	if len(buffer) >= 13 {
-	  if (buffer[12] & 0b1000000) > 0 { faults = append(faults, "Outside temp sensor (present)") }
-	  if (buffer[12] & 0b100000) > 0 { faults = append(faults, "Power supply (present)") }
-	  if (buffer[12] & 0b10000) > 0 { faults = append(faults, "Oil temp (present)") }
-	  if (buffer[12] & 0b100) > 0 { faults = append(faults, "Coolant temp (present)") }
-	  if (buffer[12] & 0b100) > 0 { faults = append(faults, "System voltage (present)") }
+	  if ((buffer[12] >> 6) & 1) > 0 { faults = append(faults, "Outside temp sensor (present)") }
+	  if ((buffer[12] >> 5) & 1) > 0 { faults = append(faults, "Power supply (present)") }
+	  if ((buffer[12] >> 4) & 1) > 0 { faults = append(faults, "Oil temp (present)") }
+	  if ((buffer[12] >> 2) & 1) > 0 { faults = append(faults, "Coolant temp (present)") } // one of these two is a typo
+          if ((buffer[12] >> 2) & 1) > 0 { faults = append(faults, "System voltage (present)") } // one of these two is a typo
 	}
 	if len(buffer) >= 14 {
-	  if (buffer[13] & 0b10000000) > 0 { faults = append(faults, "Battery voltage (present)") }
-	  if (buffer[13] & 0b10000) > 0 { faults = append(faults, "Lambda 1 bank 1 (present)") }
-	  if (buffer[13] & 0b100) > 0 { faults = append(faults, "Throttle pot (present)") }
-	  if (buffer[13] & 0b10) > 0 { faults = append(faults, "Intake air temp (present)") }
-	  if (buffer[13] & 0b1) > 0 { faults = append(faults, "MAP sensor (present)") }
+	  if ((buffer[13] >> 7) & 1) > 0 { faults = append(faults, "Battery voltage (present)") }
+	  if ((buffer[13] >> 4) & 1) > 0 { faults = append(faults, "Lambda 1 bank 1 (present)") }
+	  if ((buffer[13] >> 2) & 1) > 0 { faults = append(faults, "Throttle pot (present)") }
+	  if ((buffer[13] >> 1) & 1) > 0 { faults = append(faults, "Intake air temp (present)") }
+	  if ((buffer[13] >> 0) & 1) > 0 { faults = append(faults, "MAP sensor (present)") }
 	}
 	// 14
 	// 15
