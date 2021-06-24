@@ -2,18 +2,35 @@ package main
 
 func twojParseFaults(buffer []byte) {
 	// fmt.Printf("got %d bytes \n%s", len(buffer), hex.Dump(buffer))
-
+/*
+MPI mini fault ram locations
+9h
+594h 4h
+590h 4h
+14h
+4h
+228h
+4h
+598h
+4h
+374h
+2h
+5B0h
+2h
+513h
+1h
+5B8h
+1
+*/
+	
 	faults := []string {}
-
 	if len(buffer) >= 5 {
-		if (buffer[4] & 0b01000000) > 0 {	faults = append(faults, "Outside air temp (low voltage)") }
+	  if (buffer[4] & 0b01000000) > 0 { faults = append(faults, "Outside air temp (low voltage)") }
 	  if (buffer[4] & 0b00100000) > 0 { faults = append(faults, "Power supply (low voltage)") }
 	  if (buffer[4] & 0b00010000) > 0 { faults = append(faults, "Engine oil temp (low voltage)") }
 	  if (buffer[4] & 0b00000100) > 0 { faults = append(faults, "Coolant temp (low voltage)") }
 	  if (buffer[4] & 0b00000001) > 0 { faults = append(faults, "System (low voltage)") }
 	}
-
-
 	if len(buffer) >= 6 {
 	  if (buffer[5] & 0b10000000) > 0 { faults = append(faults, "Battery (low voltage)") }
 	  if (buffer[5] & 0b00010000) > 0 { faults = append(faults, "Lambda 1 bank 1 (low voltage)") }
@@ -21,7 +38,14 @@ func twojParseFaults(buffer []byte) {
 	  if (buffer[5] & 0b00000010) > 0 { faults = append(faults, "Air intake (low voltage)") }
 	  if (buffer[5] & 0b00000001) > 0 { faults = append(faults, "MAP sensor (low voltage)") }
 	}
+	if len(buffer) >= 7 {
+	  // buffer[6]
+	}
+	if len(buffer) >= 8 {
+	  // buffer[7]
+	}
 
+	
 	if len(buffer) >= 9 {
 	  if (buffer[8] & 0b01000000) > 0 { faults = append(faults, "Outside air temp (high voltage)") }
 	  if (buffer[8] & 0b00100000) > 0 { faults = append(faults, "Power supply (high voltage)") }
@@ -29,7 +53,6 @@ func twojParseFaults(buffer []byte) {
 	  if (buffer[8] & 0b00000100) > 0 { faults = append(faults, "Coolant temperature (high voltage)") }
 	  if (buffer[8] & 0b00000001) > 0 { faults = append(faults, "System (high voltage)") }
 	}
-
 	if len(buffer) >= 10 {
 	  if (buffer[9] & 0b10000000) > 0 { faults = append(faults, "Battery (high voltage)") }
 	  if (buffer[9] & 0b10000) > 0 { faults = append(faults, "Lambda 1 bank 1 (high voltage)") }
@@ -37,7 +60,13 @@ func twojParseFaults(buffer []byte) {
 	  if (buffer[9] & 0b10) > 0 { faults = append(faults, "Intake air temp (high voltage)") }
 	  if (buffer[9] & 0b1) > 0 { faults = append(faults, "MAP sensor (high voltage)") }
 	}
-
+	if len(buffer) >= 11 {
+	  // buffer[10];
+	}
+	if len(buffer) >= 12 {
+	  // buffer[11];
+	}
+	
 	if len(buffer) >= 13 {
 	  if (buffer[12] & 0b1000000) > 0 { faults = append(faults, "Outside temp sensor (present)") }
 	  if (buffer[12] & 0b100000) > 0 { faults = append(faults, "Power supply (present)") }
