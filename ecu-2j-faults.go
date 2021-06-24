@@ -92,7 +92,7 @@ MPI mini fault ram locations
 	}
 
 	// 374h 2h
-	// 24
+	// 24 0x374
 	if len(buffer) >= 26 {
 	  if (buffer[25] & 0b1000) > 0 { faults = append(faults, "MAP sensor (historic)") }
 	  if (buffer[25] & 0b100) > 0 { faults = append(faults, "Oil temp (historic)") }
@@ -112,17 +112,20 @@ MPI mini fault ram locations
 	  // bit 6 - not set in code
 	  // bit 7 - not set in code
 	}
-	if len(buffer) >= 28 {
-	  if (buffer[27] & 0b00000001) > 0 { faults = append(faults, "Road speed sensor (historic)") }
-	  if (buffer[27] & 0b00000010) > 0 { faults = append(faults, "Comm. with AT (historic)") }
-	  if (buffer[27] & 0b00010000) > 0 { faults = append(faults, "Feedback (historic)") }
-	}
+	// 0x5b1 buffer[27] - this is a copy of 375 above
 	
 	// 513h 1h
-	// 28
-
+	// buffer[28]
+	if len(buffer) >= 29 {
+	  if (buffer[28] & 0b00000001) > 0 { faults = append(faults, "Road speed sensor (historic)") }
+	  if (buffer[28] & 0b00000010) > 0 { faults = append(faults, "Comm. with AT (historic)") }
+	  if (buffer[28] & 0b00010000) > 0 { faults = append(faults, "Feedback (historic)") }
+	}
+	
 	// 5B8h 1
-	// 29
+	// buffer[29]
+	// this is a copy of 513 above
+
 
 	globalFaults = faults
 }
