@@ -69,9 +69,14 @@ func twojParseFaults(buffer []byte) {
 	}
 
 	if len(buffer) >= 27 {
-	  if (buffer[26] & 0b00000001) > 0 { faults = append(faults, "Road speed sensor (present)") }
-	  if (buffer[26] & 0b00000010) > 0 { faults = append(faults, "Comm. with AT (present)") }
-	  if (buffer[26] & 0b00010000) > 0 { faults = append(faults, "Feedback (present)") }
+	  if ((buffer[26] >> 0) & 1) > 0 { faults = append(faults, "Road speed sensor (present)") }
+	  if ((buffer[26] >> 1) & 1) > 0 { faults = append(faults, "Comm. with AT (present)") }
+	  // bit 2
+	  // bit 3
+          if ((buffer[26] >> 4) & 1) > 0 { faults = append(faults, "Bank 1 fuel feedback (present)") }
+	  if ((buffer[26] >> 5) & 1) > 0 { faults = append(faults, "Bank 2 fuel feedback (present)") }
+	  // bit 6
+	  // bit 7
 	}
 
 	if len(buffer) >= 28 {
