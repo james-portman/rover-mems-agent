@@ -30,3 +30,11 @@ jobs:
         run: |
           tar -a -c -f rover-mems.zip rover-mems.exe web-static
           tar -tvf rover-mems.zip
+          
+      - name: Keep artifacts if master branch
+        if: github.ref == 'refs/heads/master'
+        uses: actions/upload-artifact@v2
+        with:
+          name: built zip file
+          path: |
+            rover-mems.zip
