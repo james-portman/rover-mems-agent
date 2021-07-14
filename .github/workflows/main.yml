@@ -20,6 +20,12 @@ jobs:
           go-version: '^1.16.5'
 
       - name: Go build
+        env:
+          GOOS: windows
+          GOARCH: 386
         run: |
-          GOOS=windows GOARCH=386 go build ./...
-          ls -l
+          go build ./...
+
+      - name: Zip exe and web files
+        run: |
+          zip rover-mems.zip rover-mems.exe web-static
