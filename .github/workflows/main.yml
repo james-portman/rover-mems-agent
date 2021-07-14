@@ -24,8 +24,10 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+        go-version: '^1.16.5'
 
       - name: Go build
         run: |
-          gobin="/opt/hostedtoolcache/go/1.16.5/x64/bin/go"
-          GOOS=windows GOARCH=386 ${gobin} build ./...
+          GOOS=windows GOARCH=386 go build ./...
