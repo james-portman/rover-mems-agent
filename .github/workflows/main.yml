@@ -31,3 +31,4 @@ jobs:
       - name: Go build
         run: |
           GOOS=windows GOARCH=386 go build ./...
+          ls -l
