@@ -35,6 +35,6 @@ jobs:
         if: github.ref == 'refs/heads/master'
         uses: actions/upload-artifact@v2
         with:
-          name: built zip file
+          name: rover-mems.zip
           path: |
             rover-mems.zip
