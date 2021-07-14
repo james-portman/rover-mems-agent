@@ -31,10 +31,26 @@ jobs:
           tar -a -c -f rover-mems.zip rover-mems.exe web-static
           tar -tvf rover-mems.zip
           
-      - name: Keep artifacts if master branch
+#       - name: Keep artifacts if master branch
+#         if: github.ref == 'refs/heads/master'
+#         uses: actions/upload-artifact@v2
+#         with:
+#           name: rover-mems
+#           path: |
+#             rover-mems.zip
+
+      - name: Create draft release if master branch
         if: github.ref == 'refs/heads/master'
-        uses: actions/upload-artifact@v2
-        with:
-          name: rover-mems
-          path: |
-            rover-mems.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create arelease --title "Draft release" --draft --target master --notes "Draft release automatically made from master branch build" rover-mems.zip
+
+# Usage:  gh release create <tag> [<files>...]
+# Flags:
+#   -d, --draft             Save the release as a draft instead of publishing it
+#   -n, --notes string      Release notes
+#   -F, --notes-file file   Read release notes from file
+#   -p, --prerelease        Mark the release as a prerelease
+#       --target branch     Target branch or full commit SHA (default: main branch)
+#   -t, --title string      Release title
