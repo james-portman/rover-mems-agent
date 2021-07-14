@@ -24,8 +24,8 @@ jobs:
           GOOS: windows
           GOARCH: 386
         run: |
-          go build ./...
+          go build -o rover-mems.exe ./...
 
       - name: Zip exe and web files
         run: |
-          zip rover-mems.zip rover-mems.exe web-static
+          tar.exe -a -c -f rover-mems.zip rover-mems.exe web-static
