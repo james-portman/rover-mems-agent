@@ -28,4 +28,4 @@ jobs:
 
       - name: Zip exe and web files
         run: |
-          tar.exe -a -c -f rover-mems.zip rover-mems.exe web-static
+          tar -a -c -f rover-mems.zip rover-mems.exe web-static
