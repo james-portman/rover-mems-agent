@@ -27,7 +27,9 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Run a one-line script
-        run: IFS=:; ls -l $PATH | grep go
+        run: |
+          ls -l /opt/hostedtoolcache/go
+          ls -l /opt/hostedtoolcache/go/*
 
       - name: Go build
         run: |
