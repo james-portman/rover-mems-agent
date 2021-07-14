@@ -25,13 +25,7 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      # Runs a single command using the runners shell
-      - name: Set up go binary to 1.16
-        run: |
-          gobin="$(which go)"
-          rm "${gobin}"
-          ln -s /opt/hostedtoolcache/go/1.16.5/x64/bin/go "${gobin}"
-
       - name: Go build
         run: |
-          GOOS=windows GOARCH=386 go build ./...
+          gobin="/opt/hostedtoolcache/go/1.16.5/x64/bin/go"
+          GOOS=windows GOARCH=386 ${gobin} build ./...
