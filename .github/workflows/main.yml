@@ -44,7 +44,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create arelease --title "Draft release" --draft --target master --notes "Draft release automatically made from master branch build" rover-mems.zip
+          gh release create arelease --title "Draft release" --draft --target "${GITHUB_SHA}" --notes "Draft release automatically made from successful master branch build" rover-mems.zip
 
 # Usage:  gh release create <tag> [<files>...]
 # Flags:
