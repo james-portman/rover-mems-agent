@@ -28,8 +28,7 @@ jobs:
 
       - name: Zip exe and web files
         run: |
-          tar -a -c -f rover-mems.zip rover-mems.exe web-static
-          tar -tvf rover-mems.zip
+          zip -r rover-mems.zip rover-mems.exe web-static
           
 #       - name: Keep artifacts if master branch
 #         if: github.ref == 'refs/heads/master'
