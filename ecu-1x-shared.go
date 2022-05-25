@@ -26,6 +26,8 @@ var (
 	ecu1xStopTestPurgeValve = byte(0x08)
 	ecu1xIncreaseIdleSpeed = byte(0x91)
 	ecu1xDecreaseIdleSpeed = byte(0x92)
+	ecu1xIncreaseIgnitionAdvanceOffset = byte(0x93)
+	ecu1xDecreaseIgnitionAdvanceOffset = byte(0x94)
 
 	ecu1xUserCommands = map[string] byte{
 		"clearfaults": ecu1xRequestClearFaults,
@@ -42,6 +44,8 @@ var (
 		"stopTestPurgeValve": ecu1xStopTestPurgeValve,
 		"increaseIdleSpeed": ecu1xIncreaseIdleSpeed,
 		"decreaseIdleSpeed": ecu1xDecreaseIdleSpeed,
+		"increaseIgnitionAdvanceOffset": ecu1xIncreaseIgnitionAdvanceOffset,
+		"decreaseIgnitionAdvanceOffset": ecu1xDecreaseIgnitionAdvanceOffset,
 	}
 )
 
@@ -338,6 +342,7 @@ func ecu1xParseData80(data []byte) {
   //   // advance /= 2;
   //   // advance -= 24;
     globalDataOutput["ignition_advance_raw"] = float32(data[0x16])
+    globalDataOutput["ignition_advance"] = float32(data[0x16] / 2)
   }
   //
   // // TODO: 23-24 (x17-18) - coil time 0.002ms per lsb (16 bit)
