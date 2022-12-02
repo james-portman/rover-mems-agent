@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 	"errors"
-	"os/exec"
 	"sync"
 )
 
@@ -23,7 +22,7 @@ var (
 	globalDataOutput = map[string] float32{}
 	globalDataOutputLock = sync.RWMutex{}
 
-	globalAgentVersion = "1.2.0"
+	globalAgentVersion = "1.3.0"
 
 	outgoingData chan string // for pushing data out of the websocket
 )
@@ -35,15 +34,9 @@ func main() {
 	fmt.Println("# Rover MEMS Diagnostic Agent version "+globalAgentVersion)
 	fmt.Println("################################################################################")
 	fmt.Println("")
-	fmt.Println("Going to run the application at web address http://localhost:8080/")
-	fmt.Println("")
-	fmt.Println("It should automatically open in your default browser in a moment,")
-	fmt.Println("if not then open a browser and go to that address")
-	fmt.Println("")
-	fmt.Println("If you end up with multiple copies of the web application open then close all but one copy")
+	fmt.Println("If you have not done so already, open https://rovermems.com/agent/")
 	fmt.Println("")
 	go runWebserver()
-	_ = exec.Command("rundll32", "url.dll,FileProtocolHandler", "http://localhost:8080").Start()
 
 	for true {
 		err := connectLoop();
