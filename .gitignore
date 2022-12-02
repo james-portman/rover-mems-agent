@@ -2,3 +2,5 @@
 debug.log
 *.zip
 *.bin
+rover-mems-agent
+rover-mems-agent.*

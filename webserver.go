@@ -1,7 +1,6 @@
 package main
 
 import (
-	"embed"
 	"fmt"
 	"log"
 	"strings"
@@ -11,12 +10,8 @@ import (
 	"net/http"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/cors"
-	// "github.com/gin-contrib/static"
   "github.com/gorilla/websocket"
 )
-
-//go:embed web-static/*
-var web_static_content embed.FS
 
 func runWebserver() {
 
@@ -27,8 +22,6 @@ func runWebserver() {
 
 	router := gin.Default()
 	router.Use(cors.Default()) // allow all origins
-
-	// router.Use(static.Serve("/", static.LocalFile("web-static", false)))
 
   router.GET("/api", func(c *gin.Context) {
 		globalDataOutputLock.Lock()
@@ -103,68 +96,20 @@ func runWebserver() {
 	})
 
 
-	router.GET("/", myrouter)
-	// router.GET("/", func(c *gin.Context) {
-	// 	data, _ := web_static_content.ReadFile("web-static/index.html")
-	// 	c.Writer.Header().Set("Content-Type", "text/html")
-	// 	c.String(http.StatusOK, string(data))
-	// 	// Cache-Control: no-cache, no-store, must-revalidate
-	// 	// Pragma: no-cache
-	// 	// Expires: 0
-	// })
-	router.GET("/:name1/:name2", myrouter)
-	router.GET("/:name1", myrouter)
-
 	router.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 
 }
 
-func myrouter(c *gin.Context) {
-	// do this nicer somehow
-	name := c.Param("name1")
-	// fmt.Println(name)
-	name2 := c.Param("name2")
-	if name2 != "" {
-		name = name + "/" + name2
-	}
-	if name == "" {
-		name = "index.html"
-	}
-
-	data, _ := web_static_content.ReadFile("web-static/"+name)
-
-	mimeType := ""
-	fileSplit := strings.Split(name, ".")
-	extension := fileSplit[len(fileSplit)-1]
-	if extension == name { extension = "" }
-	switch extension {
-	case "html":
-		mimeType = "text/html"
-		break
-	case "js":
-		mimeType = "script/javascript"
-		break
-	case "css":
-		mimeType = "text/css"
-		break
-	default:
-		// mimeType = "text/plain"
-		mimeType = "application/octet-stream"
-		break
-	}
-	c.Writer.Header().Set("Content-Type", mimeType)
-	c.Writer.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	c.Writer.Header().Set("Pragma", "no-cache")
-	c.Writer.Header().Set("Expires", "0")
-	c.String(http.StatusOK, string(data))
-}
-
-var wsupgrader = websocket.Upgrader{
+var wsupgrader = websocket.Upgrader {
     ReadBufferSize:  1024,
     WriteBufferSize: 1024,
 }
 
 func wshandler(w http.ResponseWriter, r *http.Request) {
+		wsupgrader.CheckOrigin = func(r *http.Request) bool {
+			// TODO: check for localhost/127/rovermems.com ? don't actually care though
+			return true
+		}
     conn, err := wsupgrader.Upgrade(w, r, nil)
     if err != nil {
         fmt.Println("Failed to set websocket upgrade: %+v", err)
