@@ -304,13 +304,18 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 
 	buffer := make([]byte, 0)
 
-	readLoops := 0
-	readLoopsLimit := 200
-	for readLoops < readLoopsLimit {
+	lastReceivedData := timestampMs()
+	timeoutMs := int64(1000)
+
+	for timestampMs() < lastReceivedData + timeoutMs {
 		// this timeout needs changing to time without an answer rather than number of loops
 		// readLoops++
 
-		buffer = append(buffer, nonBlockingSerialRead()...)
+		newData := nonBlockingSerialRead()
+		if len(newData) > 0 {
+			lastReceivedData = timestampMs()
+		}
+		buffer = append(buffer, newData...)
 
 		// clear leading zeros (from our wake up)
 		for len(buffer) > 0 && buffer[0] == 0x00 {
@@ -366,14 +371,12 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 		buffer = nil
 		time.Sleep(50 * time.Millisecond)
 		twojSendNextCommand(sp, actualData)
-
-
 	}
-	if readLoops >= readLoopsLimit {
+	if timestampMs() >= lastReceivedData + timeoutMs {
 		// fmt.Printf("had buffer data: got %d bytes \n%s", len(buffer), hex.Dump(buffer))
 		return nil, errors.New("MEMS 2J timed out")
 	}
-	fmt.Println("fell out of readloop")
+	fmt.Println("fell out of readloop somehow")
 
 	return nil, err
 }

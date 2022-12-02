@@ -5,11 +5,6 @@ func twojParseFaults(buffer []byte) {
 /*
 MPI mini fault ram locations
 9h
-
-
-
-
-
 */
 	
 	faults := []string {}

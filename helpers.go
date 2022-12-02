@@ -32,3 +32,7 @@ func sleepUntil(start time.Time, plus int) {
   if sleepMs < 0 { return }
   time.Sleep(time.Duration(sleepMs) * time.Millisecond)
 }
+
+func timestampMs() int64 {
+    return time.Now().UnixNano() / int64(time.Millisecond)
+}
