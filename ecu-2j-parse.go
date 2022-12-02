@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"os"
+	// "os"
 	"time"
 )
 // todo - all the point values are being lost
@@ -249,53 +249,14 @@ func twojParseResponse(actualData []byte) {
 
 	if (actualData[0] == 0x63) {
 		// fmt.Println(actualData)
-		if !twojReadRomInProgress {
-			fmt.Print("Hex: ")
-			// start at 1, ignoring the command reply
-			for x := 1; x < len(actualData); x++ {
-				fmt.Printf(" %x", actualData[x])
-			}
-			fmt.Println("")
+		fmt.Print("Hex: ")
+		// start at 1, ignoring the command reply
+		for x := 1; x < len(actualData); x++ {
+			fmt.Printf(" %x", actualData[x])
 		}
+		fmt.Println("")
 
-		if !twojReadRomInProgress {
-			fmt.Println("Not running a ROM dump so going back to ping/data collection")
-			return
-		}
-
-		f, err := os.OpenFile(twojReadRomFilename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
-		if err != nil {
-		    panic(err)
-		}
-		defer f.Close()
-		f.Write(actualData[1:])
-
-		// progress
-		startAddress := 0x100000
-		endAddress := 0x120000
-		total := endAddress - startAddress
-		progress_bytes := twojReadRomCommandNextAddress - startAddress
-		remaining_bytes := total - progress_bytes
-		progress_percent := int(float32(progress_bytes) / float32(total) * 100)
-
-		now := time.Now().Unix()
-		timeTaken := now - twojReadRomStartedTime
-		bytesPerSec := int(float32(progress_bytes) / float32(timeTaken))
-		remainingSeconds := int(float32(remaining_bytes) / float32(bytesPerSec))
-		if timeTaken == 0 || bytesPerSec == 0 {
-			remainingSeconds = 999
-		}
-
-		if twojReadRomCommandNextAddress % 10 == 0 {
-			fmt.Printf("ROM dump in progress: %v bytes/%v @%vbytes/s, %v%%, %v seconds remaining\n", progress_bytes, total, bytesPerSec, progress_percent, remainingSeconds)
-		}
-
-		twojReadRomCommandNextAddress += 32
-		// TODO: check end address wouldn't go past 11ffff
-
-		twojReadRomCommandContinued[1] = byte( (twojReadRomCommandNextAddress >> 16) & 0xFF )
-		twojReadRomCommandContinued[2] = byte( (twojReadRomCommandNextAddress >> 8) & 0xFF )
-		twojReadRomCommandContinued[3] = byte( (twojReadRomCommandNextAddress >> 0) & 0xFF )
+		fmt.Println("Not running a ROM dump so going back to ping/data collection")
 		return
 	}
 

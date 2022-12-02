@@ -153,6 +153,8 @@ func wsiteration(conn *websocket.Conn, iteration int) error {
 		data["timestamp"] = time.Now().String()
 		data["serialPorts"] = globalSerialPorts
 		data["selectedSerialPort"] = globalSelectedSerialPort
+		data["logLines"] = globalLogLines
+
 		if globalAlert != "" {
 			globalAlert = ""
 		}

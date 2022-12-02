@@ -24,6 +24,8 @@ var (
 
 	globalAgentVersion = "1.3.0"
 
+	globalLogLines = []string{}
+
 	outgoingData chan string // for pushing data out of the websocket
 )
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 	"errors"
-	"encoding/hex"
+	// "encoding/hex"
 	"github.com/distributed/sers"
 )
 
@@ -39,15 +39,15 @@ var (
 
 	twojRead722Command = []byte {0x23, 0x00, 0x07, 0x22, 0x01}
 
-	// read a load from the start of the ROM 0x100000
-	// eventually needs to get to 0x1FFFFF
-	twojReadRomCommand = []byte {0x23, 0x10, 0x00, 0x00, 32} // 34 bytes might actually be allowed at a time but 32 will be neater blocks
-	// 4096 reads needed at that size
-	twojReadRomCommandNextAddress = 0x100000
-	twojReadRomCommandContinued = []byte {0x23, 0x10, 0x00, 0x00, 32} // used to loop with new addresses
-	twojReadRomInProgress = false
-	twojReadRomFilename = "rom-dump.bin"
-	twojReadRomStartedTime = time.Now().Unix() // placeholder
+	// // read a load from the start of the ROM 0x100000
+	// // eventually needs to get to 0x1FFFFF
+	// twojReadRomCommand = []byte {0x23, 0x10, 0x00, 0x00, 32} // 34 bytes might actually be allowed at a time but 32 will be neater blocks
+	// // 4096 reads needed at that size
+	// twojReadRomCommandNextAddress = 0x100000
+	// twojReadRomCommandContinued = []byte {0x23, 0x10, 0x00, 0x00, 32} // used to loop with new addresses
+	// twojReadRomInProgress = false
+	// twojReadRomFilename = "rom-dump.bin"
+	// twojReadRomStartedTime = time.Now().Unix() // placeholder
 
 	twojRequestService13 = []byte {0x13}
 
@@ -142,11 +142,13 @@ d7 - swap to NOSELECT calibration and set immo code to 0xffff (disable it?)
 	twojResponseData25 = []byte {0x61, 0x25}
 	twojResponseData3A = []byte {0x61, 0x3A}
 
+	twojRefusePing = []byte {0x7F, 0x3e, 0x10}
+
 	twojUserCommands = map[string] []byte{
 		"clearfaults": twojClearFaultsCommand,
 		"learnimmo": twojLearnImmoCommand,
 		"read722": twojRead722Command,
-		"readrom": twojReadRomCommand,
+		// "readrom": twojReadRomCommand,
 		"service13": twojRequestService13,
 
 		"service31_d5": twojRequestService31_d5,
@@ -164,7 +166,7 @@ d7 - swap to NOSELECT calibration and set immo code to 0xffff (disable it?)
 )
 
 func twojSendCommand(sp sers.SerialPort, command []byte) {
-
+	fmt.Println("twojSendCommand")
 	finalCommand := []byte {byte(len(command))}
 
 	for i := 0; i < len(command); i++ {
@@ -185,19 +187,6 @@ func twojSendCommand(sp sers.SerialPort, command []byte) {
 
 // this is the logic of what to do next based on what is received
 func twojSendNextCommand(sp sers.SerialPort, previousResponse []byte) {
-	if twojReadRomInProgress {
-		if twojReadRomCommandNextAddress >= 0x120000 {
-			twojReadRomInProgress = false
-			fmt.Println("Finished ROM dump!")
-			fmt.Println("Going back to ping")
-			twojSendCommand(sp, twojPingCommand)
-			return
-		} else {
-			twojSendCommand(sp, twojReadRomCommandContinued)
-			return
-		}
-	}
-
 
 	if globalUserCommand != "" {
 		command, ok := twojUserCommands[globalUserCommand];
@@ -259,6 +248,10 @@ func twojSendNextCommand(sp sers.SerialPort, previousResponse []byte) {
 	} else if slicesEqual(previousResponse[0:2], twojResponseData25) { twojSendCommand(sp, twojRequestData3A)
 	} else if slicesEqual(previousResponse[0:2], twojResponseData3A) { twojSendCommand(sp, twojPingCommand)
 
+	} else if slicesEqual(previousResponse, twojRefusePing) {
+		// cope with not authed? it can refuse 3e ping
+		twojSendCommand(sp, twojRequestSeed)	
+
 	} else { // fall back to ping
 		fmt.Println("Falling back to ping command")
 		twojSendCommand(sp, twojPingCommand)
@@ -282,16 +275,13 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	// setting:
 	// minread = 0: minimal buffering on read, return characters as early as possible
 	// timeout = 1.0: time out if after 1.0 seconds nothing is received
 	err = sp.SetReadParams(0, 0.001)
-	// err = sp.SetReadParams(0, 1)
 	if err != nil {
 		return nil, err
 	}
-
 	mode, err := sp.GetMode()
 	fmt.Println("Serial cable set to:")
 	fmt.Println(mode)
@@ -303,7 +293,6 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 	time.Sleep(25 * time.Millisecond)
 	sp.SetBreak(false)
 	time.Sleep(25 * time.Millisecond)
-
 
 	time.Sleep(50 * time.Millisecond)
 
@@ -317,70 +306,79 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 	readLoopsLimit := 200
 	for readLoops < readLoopsLimit {
 		readLoops++
-		if readLoops > 1 {
-			time.Sleep(10 * time.Millisecond)
-		}
 
-		rb := make([]byte, 128)
-		n, _ := sp.Read(rb[:])
-		rb = rb[0:n] // chop down to actual data size
-		buffer = append(buffer, rb...)
-		if n > 0 {
-			readLoops = 0 // reset timeout
+		// only read again if we don't have a full packet ready
+		// the reads are always blocking on linux even though they aren't in windows...
+		// TODO: move the serial reads and writes to their own go routines then it doesn't matter if it blocks
+		if len(buffer) <= 0 || len(buffer) < int(buffer[0])+2 {
+			rb := make([]byte, 256)
+			n, _ := sp.Read(rb[:])
+			rb = rb[0:n] // chop down to actual data size
+			buffer = append(buffer, rb...)
+
+			if n > 0 {
+				readLoops = 0 // reset timeout
+				// fmt.Print(hex.Dump(buffer))
+			}
 		}
 
 		// clear leading zeros (from our wake up)
 		for len(buffer) > 0 && buffer[0] == 0x00 {
+			fmt.Println("Cleared leading zeros")
 			buffer = buffer[1:]
 		}
 
-		if len(buffer) == 0 { continue }
+		if len(buffer) == 0 {
+			fmt.Println("buffer empty")
+			continue
+		}
 
-		// check for init echo
-		if len(buffer) >= 5 && slicesEqual(buffer[0:5], twojInitCommand) {
-			// fmt.Println("Got our init echo")
-			buffer = buffer[5:]
+		// check for our init echo
+		if len(buffer) >= 5 && slicesEqual(buffer[0:len(twojInitCommand)], twojInitCommand) {
+			fmt.Println("Got our init echo")
+			buffer = buffer[len(twojInitCommand):]
+			// fmt.Print(hex.Dump(buffer))
 			continue
 		}
 
 		// check for full commands - our echos and responses too
 
-		if len(buffer) < int(buffer[0]) + 2 {
-			// fmt.Println("waiting for rest of data packet")
+		packetSize := int(buffer[0])
+		// TODO: check for implausible packet size
+
+		if len(buffer) < packetSize + 2 {
+			fmt.Println("waiting for rest of data packet")
 			continue
 		}
 
 		// TODO: check checksum ?
 
-		actualData := buffer[1:int(buffer[0])+1] // doesn't include len or checksum
-		fullPacket := buffer[0:int(buffer[0])+2]
+		actualData := buffer[1:packetSize+1] // doesn't include len or checksum
+		fullPacket := buffer[0:packetSize+2] // entire packet
 		// fmt.Printf("actual data: got %d bytes \n%s", len(actualData), hex.Dump(actualData))
 		// fmt.Printf("fullPacket: got %d bytes \n%s", len(fullPacket), hex.Dump(fullPacket))
 
-		// our echo
-		if slicesEqual(actualData, twojReadRomCommand) {
-			// fmt.Println("Got our echo")
-			buffer = buffer[(len(twojReadRomCommand)+2):]
-			// move this to the parse function?
-			twojReadRomInProgress = true // we started a rom dump so don't go off doing other work until finished
-			twojReadRomCommandNextAddress = 0x100000 // reset it
-			twojReadRomStartedTime = time.Now().Unix()
+		// check for our echo
+		if len(twojLastSentCommand) > 0 && len(fullPacket) >= len(twojLastSentCommand) && slicesEqual(fullPacket[0:len(twojLastSentCommand)], twojLastSentCommand) {
+			buffer = buffer[len(twojLastSentCommand):]
+			fmt.Println("Got our last command echo, buffer now:")
+			// fmt.Print(hex.Dump(buffer))
+			fmt.Println(len(buffer))
 			continue
 		}
 
-		if slicesEqual(fullPacket, twojLastSentCommand) {
-			buffer = buffer[(len(twojLastSentCommand)):]
-			continue
-		}
-
+		fmt.Println("must have a response that needs parsing:")
+		// fmt.Print(hex.Dump(fullPacket))
+		// fmt.Print(hex.Dump(actualData))
 		twojParseResponse(actualData)
 		buffer = nil
-		time.Sleep(25 * time.Millisecond)
+		time.Sleep(50 * time.Millisecond)
 		twojSendNextCommand(sp, actualData)
+
 
 	}
 	if readLoops >= readLoopsLimit {
-		fmt.Printf("had buffer data: got %d bytes \n%s", len(buffer), hex.Dump(buffer))
+		// fmt.Printf("had buffer data: got %d bytes \n%s", len(buffer), hex.Dump(buffer))
 		return nil, errors.New("MEMS 2J timed out")
 	}
 	fmt.Println("fell out of readloop")
