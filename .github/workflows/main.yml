@@ -19,17 +19,25 @@ jobs:
         with:
           go-version: '^1.16.5'
 
-      - name: Go build
+      - name: Go build for Windows
         env:
           GOOS: windows
           GOARCH: 386
         run: |
-          go build -o rover-mems.exe ./...
+          go build -o rover-mems-windows.exe ./...
 
-      - name: Zip exe and web files
+      - name: Go build for Linux
+        env:
+          GOOS: linux
+          GOARCH: 386
         run: |
-          zip -r rover-mems.zip rover-mems.exe web-static
-          
+          go build -o rover-mems-linux ./...
+
+      - name: Zip exes
+        run: |
+          zip -r rover-mems-windows.zip rover-mems-windows.exe
+          zip -r rover-mems-linux.zip rover-mems-linux
+
 #       - name: Keep artifacts if master branch
 #         if: github.ref == 'refs/heads/master'
 #         uses: actions/upload-artifact@v2
@@ -43,7 +51,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create arelease --title "Draft release" --draft --target "${GITHUB_SHA}" --notes "Draft release automatically made from successful master branch build" rover-mems.zip
+          gh release create arelease --title "Draft release" --draft --target "${GITHUB_SHA}" --notes "Draft release automatically made from successful master branch build" rover-mems-windows.zip rover-mems-linux.zip
 
 # Usage:  gh release create <tag> [<files>...]
 # Flags:
