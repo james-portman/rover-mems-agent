@@ -24,19 +24,19 @@ jobs:
           GOOS: windows
           GOARCH: 386
         run: |
-          go build -o rover-mems-windows.exe ./...
+          go build -o rover-mems-windows-i386.exe ./...
 
       - name: Go build for Linux
         env:
           GOOS: linux
-          GOARCH: 386
+          GOARCH: amd64
         run: |
-          go build -o rover-mems-linux ./...
+          go build -o rover-mems-linux-amd64 ./...
 
       - name: Zip exes
         run: |
-          zip -r rover-mems-windows.zip rover-mems-windows.exe
-          zip -r rover-mems-linux.zip rover-mems-linux
+          zip -r rover-mems-windows-i386.zip rover-mems-windows-i386.exe
+          zip -r rover-mems-linux-amd64.zip rover-mems-linux-amd64
 
 #       - name: Keep artifacts if master branch
 #         if: github.ref == 'refs/heads/master'
@@ -51,7 +51,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create arelease --title "Draft release" --draft --target "${GITHUB_SHA}" --notes "Draft release automatically made from successful master branch build" rover-mems-windows.zip rover-mems-linux.zip
+          gh release create arelease --title "Draft release" --draft --target "${GITHUB_SHA}" --notes "Draft release automatically made from successful master branch build" rover-mems-windows-i386.zip rover-mems-linux-amd64.zip
 
 # Usage:  gh release create <tag> [<files>...]
 # Flags:
