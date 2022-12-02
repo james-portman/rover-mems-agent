@@ -1,5 +1,7 @@
 package main
 
+// TODO: fix the code to skip over failing 0x21 data reads and go to next instead of restarting
+
 import (
 	"fmt"
 	"time"
@@ -325,7 +327,7 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 
 		if len(buffer) == 0 {
 			// fmt.Println("buffer empty")
-			time.Sleep(1 * time.Millisecond)
+			time.Sleep(1 * time.Millisecond) // dont hammer CPU
 			continue
 		}
 
@@ -344,7 +346,7 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 
 		if len(buffer) < packetSize + 2 {
 			// fmt.Println("waiting for rest of data packet")
-			time.Sleep(1 * time.Millisecond)
+			time.Sleep(1 * time.Millisecond) // dont hammer CPU
 			continue
 		}
 
@@ -369,7 +371,7 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 		// fmt.Print(hex.Dump(actualData))
 		twojParseResponse(actualData)
 		buffer = nil
-		time.Sleep(50 * time.Millisecond)
+		time.Sleep(20 * time.Millisecond)
 		twojSendNextCommand(sp, actualData)
 	}
 	if timestampMs() >= lastReceivedData + timeoutMs {
