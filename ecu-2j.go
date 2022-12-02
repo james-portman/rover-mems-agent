@@ -166,7 +166,7 @@ d7 - swap to NOSELECT calibration and set immo code to 0xffff (disable it?)
 )
 
 func twojSendCommand(sp sers.SerialPort, command []byte) {
-	fmt.Println("twojSendCommand")
+	// fmt.Println("twojSendCommand")
 	finalCommand := []byte {byte(len(command))}
 
 	for i := 0; i < len(command); i++ {
@@ -361,13 +361,13 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 		// check for our echo
 		if len(twojLastSentCommand) > 0 && len(fullPacket) >= len(twojLastSentCommand) && slicesEqual(fullPacket[0:len(twojLastSentCommand)], twojLastSentCommand) {
 			buffer = buffer[len(twojLastSentCommand):]
-			fmt.Println("Got our last command echo, buffer now:")
+			// fmt.Println("Got our last command echo, buffer now:")
 			// fmt.Print(hex.Dump(buffer))
-			fmt.Println(len(buffer))
+			// fmt.Println(len(buffer))
 			continue
 		}
 
-		fmt.Println("must have a response that needs parsing:")
+		// fmt.Println("must have a response that needs parsing:")
 		// fmt.Print(hex.Dump(fullPacket))
 		// fmt.Print(hex.Dump(actualData))
 		twojParseResponse(actualData)
