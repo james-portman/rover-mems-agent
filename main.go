@@ -27,6 +27,9 @@ var (
 	globalLogLines = []string{}
 
 	outgoingData chan string // for pushing data out of the websocket
+
+	serialReadChannel = make(chan byte, 1024)
+	// serialWriteChannel = make(chan byte, 1024)
 )
 
 func main() {

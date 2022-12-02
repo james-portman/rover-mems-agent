@@ -286,6 +286,8 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 	fmt.Println("Serial cable set to:")
 	fmt.Println(mode)
 
+	go serialReadRoutine(sp)
+
 	sp.SetBreak(false)
 	time.Sleep(200 * time.Millisecond)
 
@@ -305,22 +307,10 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 	readLoops := 0
 	readLoopsLimit := 200
 	for readLoops < readLoopsLimit {
-		readLoops++
+		// this timeout needs changing to time without an answer rather than number of loops
+		// readLoops++
 
-		// only read again if we don't have a full packet ready
-		// the reads are always blocking on linux even though they aren't in windows...
-		// TODO: move the serial reads and writes to their own go routines then it doesn't matter if it blocks
-		if len(buffer) <= 0 || len(buffer) < int(buffer[0])+2 {
-			rb := make([]byte, 256)
-			n, _ := sp.Read(rb[:])
-			rb = rb[0:n] // chop down to actual data size
-			buffer = append(buffer, rb...)
-
-			if n > 0 {
-				readLoops = 0 // reset timeout
-				// fmt.Print(hex.Dump(buffer))
-			}
-		}
+		buffer = append(buffer, nonBlockingSerialRead()...)
 
 		// clear leading zeros (from our wake up)
 		for len(buffer) > 0 && buffer[0] == 0x00 {
@@ -329,7 +319,8 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 		}
 
 		if len(buffer) == 0 {
-			fmt.Println("buffer empty")
+			// fmt.Println("buffer empty")
+			time.Sleep(1 * time.Millisecond)
 			continue
 		}
 
@@ -347,7 +338,8 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 		// TODO: check for implausible packet size
 
 		if len(buffer) < packetSize + 2 {
-			fmt.Println("waiting for rest of data packet")
+			// fmt.Println("waiting for rest of data packet")
+			time.Sleep(1 * time.Millisecond)
 			continue
 		}
 
