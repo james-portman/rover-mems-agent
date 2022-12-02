@@ -15,6 +15,7 @@ func twojParseResponse(actualData []byte) {
 	if slicesEqual(actualData, twojWokeResponse) {
 		fmt.Println("< ECU woke up")
 		globalConnected = true
+		time.Sleep(50 * time.Millisecond) // slepe an extra 50 after wake up
 		return
 	}
 	if slicesEqual(actualData, twojStartDiagResponse) {
@@ -26,7 +27,12 @@ func twojParseResponse(actualData []byte) {
 		twojSeed = int(actualData[2]) << 8
 		twojSeed += int(actualData[3])
 		// do key generation
-		twojKey = generateKey(twojSeed)
+		if (twojSeed == 0) {
+			fmt.Println("Already logged in (seed was 0)")
+			twojKey = 0
+		} else {
+			twojKey = generateKey(twojSeed)
+		}
 		return
 	}
 	if slicesEqual(actualData, twojKeyAcceptResponse) {

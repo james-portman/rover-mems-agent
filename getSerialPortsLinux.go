@@ -5,7 +5,6 @@ package main
 import (
 	"os"
 	"path/filepath"
-	"fmt"
 	"strings"
 )
 
@@ -23,7 +22,6 @@ func nativeGetPortsList() ([]string, error) {
             return err
         }
         if (strings.HasPrefix(info.Name(), "ttyUSB") || strings.HasPrefix(info.Name(), "ttyACM")) {
-        	fmt.Println(info.Name())
         	output = append(output, "/dev/"+info.Name())
         }
         return nil

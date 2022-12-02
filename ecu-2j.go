@@ -185,7 +185,6 @@ func twojSendCommand(sp sers.SerialPort, command []byte) {
 
 // this is the logic of what to do next based on what is received
 func twojSendNextCommand(sp sers.SerialPort, previousResponse []byte) {
-
 	if twojReadRomInProgress {
 		if twojReadRomCommandNextAddress >= 0x120000 {
 			twojReadRomInProgress = false
@@ -288,6 +287,7 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 	// minread = 0: minimal buffering on read, return characters as early as possible
 	// timeout = 1.0: time out if after 1.0 seconds nothing is received
 	err = sp.SetReadParams(0, 0.001)
+	// err = sp.SetReadParams(0, 1)
 	if err != nil {
 		return nil, err
 	}
@@ -297,14 +297,18 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 	fmt.Println(mode)
 
 	sp.SetBreak(false)
-	time.Sleep(2000 * time.Millisecond)
+	time.Sleep(200 * time.Millisecond)
 
 	sp.SetBreak(true)
 	time.Sleep(25 * time.Millisecond)
 	sp.SetBreak(false)
 	time.Sleep(25 * time.Millisecond)
 
+
+	time.Sleep(50 * time.Millisecond)
+
 	sp.Write(twojInitCommand)
+	fmt.Println("Done sending init command")
 
 
 	buffer := make([]byte, 0)
@@ -371,7 +375,7 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 
 		twojParseResponse(actualData)
 		buffer = nil
-		time.Sleep(50 * time.Millisecond)
+		time.Sleep(25 * time.Millisecond)
 		twojSendNextCommand(sp, actualData)
 
 	}
