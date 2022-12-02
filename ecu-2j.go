@@ -280,7 +280,7 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 	// setting:
 	// minread = 0: minimal buffering on read, return characters as early as possible
 	// timeout = 1.0: time out if after 1.0 seconds nothing is received
-	err = sp.SetReadParams(0, 0.001)
+	err = sp.SetReadParams(0, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -288,6 +288,9 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 	fmt.Println("Serial cable set to:")
 	fmt.Println(mode)
 
+	// TODO: this is not great, it will keep spawning new ones on every reconnect
+	// but they are completely locked by the blocking read in Linux
+	// they might behave weirdly in Windows, test it
 	go serialReadRoutine(sp)
 
 	sp.SetBreak(false)
@@ -371,9 +374,10 @@ func readFirstBytesFromPortTwoj(fn string) ([]byte, error) {
 		// fmt.Print(hex.Dump(actualData))
 		twojParseResponse(actualData)
 		buffer = nil
-		time.Sleep(20 * time.Millisecond)
+		time.Sleep(25 * time.Millisecond)
 		twojSendNextCommand(sp, actualData)
 	}
+
 	if timestampMs() >= lastReceivedData + timeoutMs {
 		// fmt.Printf("had buffer data: got %d bytes \n%s", len(buffer), hex.Dump(buffer))
 		return nil, errors.New("MEMS 2J timed out")

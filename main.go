@@ -22,14 +22,14 @@ var (
 	globalDataOutput = map[string] float32{}
 	globalDataOutputLock = sync.RWMutex{}
 
-	globalAgentVersion = "1.3.0"
+	globalAgentVersion = "1.4.3"
 
 	globalLogLines = []string{}
 
 	outgoingData chan string // for pushing data out of the websocket
 
 	serialReadChannel = make(chan byte, 1024)
-	// serialWriteChannel = make(chan byte, 1024)
+	serialReadRoutineRunning = false
 )
 
 func main() {
