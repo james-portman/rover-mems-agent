@@ -28,6 +28,10 @@ var (
 	ecu1xDecreaseIdleSpeed = byte(0x92)
 	ecu1xIncreaseIgnitionAdvanceOffset = byte(0x93)
 	ecu1xDecreaseIgnitionAdvanceOffset = byte(0x94)
+	ecu1xIncreaseFuelTrim1 = byte(0x79)
+	ecu1xDecreaseFuelTrim1 = byte(0x7A)
+	ecu1xIncreaseFuelTrim2 = byte(0x7B)
+	ecu1xDecreaseFuelTrim2 = byte(0x7C)
 
 	ecu1xUserCommands = map[string] byte{
 		"clearfaults": ecu1xRequestClearFaults,
@@ -46,6 +50,10 @@ var (
 		"decreaseIdleSpeed": ecu1xDecreaseIdleSpeed,
 		"increaseIgnitionAdvanceOffset": ecu1xIncreaseIgnitionAdvanceOffset,
 		"decreaseIgnitionAdvanceOffset": ecu1xDecreaseIgnitionAdvanceOffset,
+		"increaseFuelTrim1": ecu1xIncreaseFuelTrim1,
+		"decreaseFuelTrim1": ecu1xDecreaseFuelTrim1,
+		"increaseFuelTrim2": ecu1xIncreaseFuelTrim2,
+		"decreaseFuelTrim2": ecu1xDecreaseFuelTrim2,
 	}
 )
 
