@@ -24,6 +24,8 @@ var (
 	ecu1xStopTestFan1 = byte(0x0D)
 	ecu1xStartTestPurgeValve = byte(0x18)
 	ecu1xStopTestPurgeValve = byte(0x08)
+	ecu1xIncreaseIdleDecay = byte(0x89)
+	ecu1xDecreaseIdleDecay = byte(0x8A)
 	ecu1xIncreaseIdleSpeed = byte(0x91)
 	ecu1xDecreaseIdleSpeed = byte(0x92)
 	ecu1xIncreaseIgnitionAdvanceOffset = byte(0x93)
@@ -46,6 +48,8 @@ var (
 		"stopTestFan1": ecu1xStopTestFan1,
 		"startTestPurgeValve": ecu1xStartTestPurgeValve,
 		"stopTestPurgeValve": ecu1xStopTestPurgeValve,
+		"increaseIdleDecay": ecu1xIncreaseIdleDecay,
+		"decreaseIdleDecay": ecu1xDecreaseIdleDecay,
 		"increaseIdleSpeed": ecu1xIncreaseIdleSpeed,
 		"decreaseIdleSpeed": ecu1xDecreaseIdleSpeed,
 		"increaseIgnitionAdvanceOffset": ecu1xIncreaseIgnitionAdvanceOffset,
